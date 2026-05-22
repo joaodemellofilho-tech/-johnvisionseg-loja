@@ -1,0 +1,18 @@
+{
+  "name": "JohnVisionSeg Cameras e CFTV",
+  "short_name": "JohnVisionSeg",
+  "description": "Loja online de cameras de seguranca, CFTV, alarmes e controle de acesso.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07111d",
+  "theme_color": "#07111d",
+  "icons": [
+    {
+      "src": "assets/icons/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

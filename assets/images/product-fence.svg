@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-label="Cerca eletrica">
+  <rect width="640" height="420" rx="28" fill="#f2f7ff"/>
+  <path d="M0 306h640v114H0z" fill="#dfeaf7"/>
+  <path d="M128 116v210M256 92v234M384 92v234M512 116v210" stroke="#143d73" stroke-width="18" stroke-linecap="round"/>
+  <path d="M92 142h456M92 190h456M92 238h456M92 286h456" stroke="#0f78bf" stroke-width="10" stroke-linecap="round"/>
+  <path d="M322 112l-38 72h45l-34 92 78-112h-47l38-52z" fill="#16a34a"/>
+  <rect x="228" y="292" width="184" height="48" rx="14" fill="#ffffff" stroke="#b9c8d8" stroke-width="8"/>
+</svg>

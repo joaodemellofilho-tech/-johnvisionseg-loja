@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>John@VisionSeg Loja | Cameras, CFTV e Seguranca Eletronica</title>
+<meta name="description" content="Loja online de cameras, CFTV, alarmes e seguranca eletronica com carrinho, WhatsApp e produtos Mercado Livre.">
+<meta name="robots" content="index, follow">
+<meta name="author" content="John@VisionSeg">
+<meta property="og:title" content="John@VisionSeg Loja Online">
+<meta property="og:description" content="Compre cameras PTZ, CFTV, alarmes e equipamentos de seguranca eletronica.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta name="theme-color" content="#020b14">
+<link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Store",
+  "name": "John@VisionSeg Cameras",
+  "description": "Loja online de cameras de seguranca, CFTV, alarmes e controle de acesso.",
+  "url": "./index.html",
+  "areaServed": "Brasil",
+  "sameAs": [],
+  "makesOffer": [
+    { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Cameras de seguranca" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Kits CFTV" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Alarmes e controle de acesso" } }
+  ]
+}
+</script>
+</head>
+<body class="storefront">
+<a class="skip-link" href="#produtos">Pular para produtos</a>
+
+<canvas id="particleCanvas" aria-hidden="true" style="display:none"></canvas>
+
+<header class="topbar store-topbar" style="position:relative">
+  <a class="brand" href="#produtos" aria-label="John@VisionSeg Loja">
+    <span class="brand-logo"><img src="assets/icons/logo-mark.svg" alt="" aria-hidden="true"></span>
+    <span>
+      <strong data-setting="companyName">John@VisionSeg Cameras</strong>
+      <small>seguranca eletronica profissional</small>
+    </span>
+  </a>
+  <nav class="desktop-nav" aria-label="Navegacao principal">
+    <a href="#produtos">Produtos</a>
+    <a href="#solucoes">Solucoes</a>
+    <a href="#como-comprar">Como comprar</a>
+    <a href="#contato">Atendimento</a>
+    <a href="admin/index.html">Painel</a>
+  </nav>
+  <!-- System status indicator -->
+  <div style="display:flex;align-items:center;gap:8px;margin-right:8px;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#7fafc8;display:none" class="sys-status desktop-nav">
+    <span style="width:7px;height:7px;border-radius:50%;background:#00ff88;box-shadow:0 0 8px #00ff88;animation:blink 2s ease-in-out infinite;display:inline-block"></span>
+    SYS_ONLINE
+  </div>
+  <button class="customer-login-btn" id="authBtn" type="button" aria-label="Entrar na conta">
+    <span class="auth-btn-icon" aria-hidden="true">Conta</span>
+    <span id="authBtnLabel">Entrar</span>
+  </button>
+  <button class="cart-button" id="cartBtn" type="button" aria-label="Abrir carrinho">
+    <span aria-hidden="true">Carrinho</span>
+    <b id="cartCount">0</b>
+  </button>
+</header>
+
+<style>
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.sys-status{display:flex!important}
+@media(max-width:980px){.sys-status{display:none!important}}
+</style>
+
+<nav class="mobile-nav" aria-label="Navegacao mobile">
+  <a href="#produtos">Loja</a>
+  <a href="#solucoes">Solucoes</a>
+  <a href="#contato">Contato</a>
+  <a id="mobileAuthLink" href="#" onclick="openAuthModal();return false;">Entrar</a>
+  <a href="#produtos">Buscar</a>
+</nav>
+
+<main id="conteudo" style="position:relative;z-index:2">
+  <section id="maintenanceScreen" class="maintenance-screen" hidden>
+    <div>
+      <span class="eyebrow">Status da loja</span>
+      <h1 id="maintenanceTitle">Loja em manutencao</h1>
+      <p id="maintenanceMessage">Estamos ajustando a vitrine. Volte em breve.</p>
+      <a id="maintenanceWhatsapp" class="btn primary" target="_blank" rel="noopener">Falar pelo WhatsApp</a>
+    </div>
+  </section>
+
+  <div id="storeContent">
+  <section id="ofertas" class="store-hero">
+    <div class="store-hero-copy">
+      <span class="badge">Loja online especializada em seguranca</span>
+      <h1>Cameras de seguranca, CFTV e monitoramento para comprar online</h1>
+      <p>Escolha cameras PTZ, kits CFTV, alarmes e controle de acesso com orientacao tecnica, pedido rapido pelo WhatsApp e suporte para definir o equipamento certo.</p>
+      <div class="actions">
+        <a class="btn primary" href="#produtos">Ver produtos</a>
+        <button class="btn secondary" id="heroCartBtn" type="button">Ver carrinho</button>
+      </div>
+      <div class="hero-assurance" aria-label="Garantias comerciais">
+        <span>Atendimento humano</span>
+        <span>Produtos para pronta venda</span>
+        <span>Pedido pelo WhatsApp</span>
+      </div>
+    </div>
+    <div class="store-deals" aria-label="Benefícios da loja">
+      <div><strong>PTZ</strong><span>Cameras inteligentes com rastreamento</span></div>
+      <div><strong>4K / 6K</strong><span>Alta resolucao para ambientes externos</span></div>
+      <div><strong>WhatsApp</strong><span>Pedido rapido com atendimento direto</span></div>
+    </div>
+  </section>
+
+  <section class="trust-strip" aria-label="Diferenciais da loja">
+    <div><strong>Compra assistida</strong><span>Ajuda para escolher modelo, alcance, lente e armazenamento.</span></div>
+    <div><strong>Catalogo tecnico</strong><span>Cards com especificacoes, estoque, galeria e preco de venda.</span></div>
+    <div><strong>Projeto sob medida</strong><span>Residencias, comercios, condominios, fazendas e empresas.</span></div>
+    <div><strong>Pos-venda</strong><span>Suporte para configuracao, aplicativo, acesso remoto e expansao.</span></div>
+  </section>
+
+  <section id="solucoes" class="section solution-section">
+    <div class="section-heading">
+      <span class="eyebrow">Solucoes</span>
+      <h2>Seguranca certa para cada ambiente</h2>
+      <p>Organizamos os produtos por aplicacao para vender mais rapido e ajudar o cliente a entender o que precisa.</p>
+    </div>
+    <div class="solution-grid">
+      <article><span>01</span><h3>Casa e apartamento</h3><p>Cameras Wi-Fi, video porteiro, alarme e acesso pelo celular para entradas, garagem e area externa.</p></article>
+      <article><span>02</span><h3>Loja e comercio</h3><p>Kits CFTV, DVR/NVR e cameras com visao noturna para caixa, estoque, atendimento e fachada.</p></article>
+      <article><span>03</span><h3>Area externa</h3><p>Cameras PTZ, lente dupla, solar, rastreamento automatico e protecao contra chuva conforme o modelo.</p></article>
+      <article><span>04</span><h3>Controle de acesso</h3><p>Fechaduras, video porteiro, biometria, tags e solucoes para casas, empresas e condominios.</p></article>
+    </div>
+  </section>
+
+  <section id="produtos" class="section shop-section store-catalog">
+    <div class="store-toolbar">
+      <div>
+        <span class="eyebrow">Catalogo online</span>
+        <h2>Vitrine de cameras e equipamentos</h2>
+        <p>Compare modelos, veja detalhes e compre direto pelo WhatsApp.</p>
+      </div>
+      <div class="filters" role="search">
+        <input id="searchInput" type="search" placeholder="// buscar produto..." aria-label="Buscar produto">
+        <select id="categoryFilter" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
+      </div>
+    </div>
+    <div id="productsGrid" class="products-grid"></div>
+  </section>
+
+  <section id="como-comprar" class="section buying-section">
+    <div class="section-heading">
+      <span class="eyebrow">Como comprar</span>
+      <h2>Pedido simples, atendimento tecnico e venda direta</h2>
+    </div>
+    <div class="buying-steps">
+      <div><strong>1</strong><h3>Escolha o produto</h3><p>Use busca e categoria para encontrar cameras, kits e acessorios.</p></div>
+      <div><strong>2</strong><h3>Fale no WhatsApp</h3><p>Clique em comprar agora ou monte o carrinho e envie o pedido completo.</p></div>
+      <div><strong>3</strong><h3>Confirme o melhor modelo</h3><p>Receba orientacao sobre alcance, local de instalacao, gravacao e aplicativo.</p></div>
+      <div><strong>4</strong><h3>Finalize com seguranca</h3><p>Combinamos pagamento, entrega, retirada ou instalacao conforme sua regiao.</p></div>
+    </div>
+  </section>
+
+  <section class="section professional-section">
+    <div class="pro-copy">
+      <span class="eyebrow">Atendimento profissional</span>
+      <h2>Nao sabe qual camera comprar?</h2>
+      <p>Envie foto do local, distancia aproximada e objetivo da seguranca. Indicamos a solucao mais adequada para residencia, comercio ou area externa.</p>
+      <a class="btn primary" href="#contato">Pedir indicacao</a>
+    </div>
+    <div class="pro-checklist">
+      <div><strong>Analise de ambiente</strong><span>Entrada, garagem, corredor, estoque, fachada ou area rural.</span></div>
+      <div><strong>Definicao tecnica</strong><span>Resolucao, lente, zoom, infravermelho, Wi-Fi, DVR, NVR ou armazenamento.</span></div>
+      <div><strong>Compra orientada</strong><span>Menos erro na escolha e mais satisfacao depois da instalacao.</span></div>
+    </div>
+  </section>
+
+  <section class="section faq-section">
+    <div class="section-heading">
+      <span class="eyebrow">Duvidas frequentes</span>
+      <h2>Perguntas antes de comprar</h2>
+    </div>
+    <div class="faq-grid">
+      <details open><summary>Qual camera serve para area externa?</summary><p>Procure modelos com protecao para chuva, boa visao noturna e lente adequada para a distancia. Para acompanhar movimento, cameras PTZ podem ser melhores.</p></details>
+      <details><summary>Consigo ver pelo celular?</summary><p>Sim. Muitos modelos trabalham com aplicativo e acesso remoto. A configuracao depende do equipamento e da rede do local.</p></details>
+      <details><summary>Preciso de DVR ou NVR?</summary><p>Kits cabeados normalmente usam DVR/NVR para gravacao continua. Cameras Wi-Fi podem usar cartao, nuvem ou gravador dependendo do modelo.</p></details>
+      <details><summary>Voces ajudam a escolher?</summary><p>Sim. Envie o ambiente, quantidade de pontos e objetivo da seguranca para receber uma recomendacao antes de comprar.</p></details>
+    </div>
+  </section>
+
+  <section id="contato" class="section contact store-contact">
+    <div class="contact-copy">
+      <span class="eyebrow">Atendimento</span>
+      <h2>Fale com um especialista</h2>
+      <p>Envie sua duvida, foto do local ou lista de produtos. Respondemos com uma indicacao objetiva para compra.</p>
+      <p><strong>WhatsApp:</strong> <span data-setting="whatsapp">(00) 00000-0000</span></p>
+      <p><strong>E-mail:</strong> <span data-setting="email">contato@johnvisionseg.com</span></p>
+    </div>
+    <form id="quoteForm" class="form">
+      <input name="name" autocomplete="name" placeholder="// seu nome" required>
+      <input name="phone" autocomplete="tel" placeholder="// telefone / WhatsApp" required>
+      <select name="service" aria-label="Produto de interesse">
+        <option>Cameras PTZ</option>
+        <option>Kit CFTV</option>
+        <option>Alarmes</option>
+        <option>Cerca Eletrica</option>
+        <option>Controle de Acesso</option>
+      </select>
+      <textarea name="message" placeholder="// descreva onde pretende instalar, distancia aproximada e se quer gravacao ou acesso pelo celular"></textarea>
+      <button class="btn primary" type="submit">Pedir indicacao</button>
+    </form>
+  </section>
+  </div>
+</main>
+
+<div id="cartOverlay" class="cart-overlay" hidden></div>
+
+<!-- ════ AUTH MODAL ════ -->
+<div id="authOverlay" class="cart-overlay" hidden></div>
+<div id="authModal" class="auth-modal" aria-hidden="true" role="dialog" aria-labelledby="authModalTitle">
+  <!-- HUD corners -->
+  <span class="hud-corner hud-tl" aria-hidden="true"></span>
+  <span class="hud-corner hud-tr" aria-hidden="true"></span>
+  <span class="hud-corner hud-bl" aria-hidden="true"></span>
+  <span class="hud-corner hud-br" aria-hidden="true"></span>
+
+  <div class="auth-modal-header">
+    <div>
+      <div class="auth-modal-logo">JV</div>
+      <div>
+        <h2 id="authModalTitle" style="font-family:'Orbitron',monospace;font-size:1rem;letter-spacing:.06em;color:#00d4ff;margin:0">John@VisionSeg</h2>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#7fafc8;margin:0">// portal do cliente</p>
+      </div>
+    </div>
+    <button id="closeAuthModal" class="auth-close" type="button" aria-label="Fechar">x</button>
+  </div>
+
+  <div class="auth-tabs" role="tablist">
+    <button class="auth-tab active" id="tabLoginBtn" role="tab" aria-selected="true" onclick="switchAuthTab('login')" type="button">Entrar</button>
+    <button class="auth-tab" id="tabRegisterBtn" role="tab" aria-selected="false" onclick="switchAuthTab('register')" type="button">Criar conta</button>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <form id="loginForm" class="auth-form" novalidate>
+    <div class="auth-field">
+      <label for="loginEmail">// e-mail</label>
+      <input id="loginEmail" type="email" autocomplete="email" placeholder="seu@email.com" required>
+    </div>
+    <div class="auth-field">
+      <label for="loginPassword">// senha</label>
+      <div class="auth-password-wrap">
+        <input id="loginPassword" type="password" autocomplete="current-password" placeholder="********" required>
+        <button type="button" class="auth-eye" onclick="toggleAuthPassword('loginPassword', this)" tabindex="-1" aria-label="Mostrar senha">Ver</button>
+      </div>
+    </div>
+    <div id="loginError" class="auth-error" hidden></div>
+    <button class="btn primary full" type="submit" id="loginSubmitBtn">Acessar conta</button>
+    <p class="auth-switch">Nao tem conta? <button type="button" onclick="switchAuthTab('register')">Criar agora</button></p>
+  </form>
+
+  <!-- REGISTER FORM -->
+  <form id="registerForm" class="auth-form" style="display:none" novalidate>
+    <div class="auth-field">
+      <label for="regName">// nome completo</label>
+      <input id="regName" type="text" autocomplete="name" placeholder="Seu nome" required>
+    </div>
+    <div class="auth-field">
+      <label for="regEmail">// e-mail</label>
+      <input id="regEmail" type="email" autocomplete="email" placeholder="seu@email.com" required>
+    </div>
+    <div class="auth-field">
+      <label for="regPhone">// WhatsApp</label>
+      <input id="regPhone" type="tel" autocomplete="tel" placeholder="(11) 99999-9999">
+    </div>
+    <div class="auth-field">
+      <label for="regPassword">// senha</label>
+      <div class="auth-password-wrap">
+        <input id="regPassword" type="password" autocomplete="new-password" placeholder="minimo 6 caracteres" required>
+        <button type="button" class="auth-eye" onclick="toggleAuthPassword('regPassword', this)" tabindex="-1" aria-label="Mostrar senha">Ver</button>
+      </div>
+    </div>
+    <div id="registerError" class="auth-error" hidden></div>
+    <button class="btn primary full" type="submit" id="registerSubmitBtn">Criar minha conta</button>
+    <p class="auth-switch">Ja tem conta? <button type="button" onclick="switchAuthTab('login')">Entrar</button></p>
+  </form>
+</div>
+
+<!-- ════ CUSTOMER DASHBOARD DRAWER ════ -->
+<aside id="customerDrawer" class="customer-drawer" aria-label="Minha Conta" aria-hidden="true">
+  <div class="cart-head">
+    <h2>// Minha Conta</h2>
+    <button id="closeCustomerDrawer" type="button" aria-label="Fechar">x</button>
+  </div>
+
+  <div class="customer-profile-card">
+    <div class="customer-avatar" id="customerAvatar">?</div>
+    <div>
+      <div class="customer-name" id="customerDisplayName">-</div>
+      <div class="customer-email" id="customerDisplayEmail">-</div>
+      <div class="customer-badge">Conta do cliente</div>
+    </div>
+  </div>
+
+  <div class="customer-section">
+    <div class="customer-section-title">Dados pessoais</div>
+    <div class="customer-info-grid">
+      <div>
+        <label>Nome</label>
+        <input id="profileName" type="text" placeholder="Seu nome" style="margin:0">
+      </div>
+      <div>
+        <label>WhatsApp</label>
+        <input id="profilePhone" type="tel" placeholder="(11) 99999-9999" style="margin:0">
+      </div>
+    </div>
+    <button class="btn primary" style="margin-top:10px;width:100%;font-size:.8rem" onclick="saveProfile()" type="button">Salvar dados</button>
+  </div>
+
+  <div class="customer-section">
+    <div class="customer-section-title">Meus pedidos</div>
+    <div id="customerOrdersList"><p style="color:#7fafc8;font-family:'JetBrains Mono',monospace;font-size:.82rem">Nenhum pedido ainda.</p></div>
+  </div>
+
+  <div class="customer-section">
+    <button class="btn" style="width:100%;background:rgba(255,45,85,.12);border:1px solid rgba(255,45,85,.3);color:#ff6b6b;font-family:'JetBrains Mono',monospace;font-size:.8rem;letter-spacing:.04em" onclick="customerLogout()" type="button">Sair da conta</button>
+  </div>
+</aside>
+
+<aside id="cartDrawer" class="cart-drawer" aria-label="Carrinho" aria-hidden="true">
+  <div class="cart-head">
+    <h2>// Carrinho</h2>
+    <button id="closeCart" type="button" aria-label="Fechar carrinho">x</button>
+  </div>
+  <p class="cart-helper">Revise os itens e envie pelo WhatsApp para confirmar pagamento, disponibilidade e entrega.</p>
+  <div id="cartItems"></div>
+  <div class="cart-total"><strong>Total:</strong> <span id="cartTotal">R$ 0,00</span></div>
+  <div class="payment-box">
+    <div class="payment-box-head">
+      <strong>Pagamento</strong>
+      <span>Pix ou link seguro</span>
+    </div>
+    <div class="payment-methods">
+      <button class="btn secondary full" id="copyPixBtn" type="button">Copiar chave Pix</button>
+      <button class="btn secondary full" id="paymentLinkBtn" type="button">Pagar com cartao/link</button>
+    </div>
+    <p id="paymentInfo" class="payment-info">Configure a chave Pix ou link de pagamento no painel.</p>
+  </div>
+  <input id="customerName" autocomplete="name" placeholder="// nome do cliente">
+  <input id="customerPhone" autocomplete="tel" placeholder="// WhatsApp do cliente">
+  <textarea id="customerAddress" placeholder="// endereço / observação"></textarea>
+  <button class="btn primary full" id="checkoutBtn" type="button">Finalizar pelo WhatsApp</button>
+</aside>
+
+<a id="whatsappFloat" class="whatsapp-float" target="_blank" rel="noopener">WhatsApp</a>
+
+<footer>
+  <p>&copy; 2026 <span data-setting="companyName">John@VisionSeg Cameras</span> - Seguranca eletronica profissional. Todos os direitos reservados.</p>
+</footer>
+
+<script src="assets/js/firebase-config.js"></script>
+<script src="assets/js/app-data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/customer-auth.js"></script>
+
+<!-- Particle system -->
+<script>
+(function(){
+  const canvas = document.getElementById('particleCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  function resize(){ W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function Particle(){
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.vx = (Math.random() - .5) * .4;
+    this.vy = (Math.random() - .5) * .4;
+    this.r  = Math.random() * 1.5 + .5;
+    this.alpha = Math.random() * .6 + .2;
+    this.color = Math.random() > .7 ? '#00d4ff' : Math.random() > .5 ? '#1e6fff' : '#00ff88';
+  }
+  Particle.prototype.update = function(){
+    this.x += this.vx; this.y += this.vy;
+    if(this.x < 0) this.x = W;
+    if(this.x > W) this.x = 0;
+    if(this.y < 0) this.y = H;
+    if(this.y > H) this.y = 0;
+  };
+
+  for(let i = 0; i < 80; i++) particles.push(new Particle());
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // draw connections
+    for(let i = 0; i < particles.length; i++){
+      for(let j = i+1; j < particles.length; j++){
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist < 130){
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(0,212,255,${.12*(1-dist/130)})`;
+          ctx.lineWidth = .5;
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    // draw dots
+    particles.forEach(p => {
+      p.update();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.alpha;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("service-worker.js").catch(() => {}));
+}
+</script>
+</body>
+</html>

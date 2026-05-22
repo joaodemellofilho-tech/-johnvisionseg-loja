@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-label="Camera PTZ">
+  <rect width="640" height="420" rx="28" fill="#edf7f2"/>
+  <path d="M0 312h640v108H0z" fill="#d9eee2"/>
+  <rect x="228" y="76" width="184" height="54" rx="18" fill="#143d73"/>
+  <path d="M190 122h260l-22 78H212z" fill="#ffffff" stroke="#b9c8d8" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M218 188h204c0 75-45 126-102 126S218 263 218 188Z" fill="#ffffff" stroke="#b9c8d8" stroke-width="10"/>
+  <circle cx="320" cy="232" r="58" fill="#07111f"/>
+  <circle cx="320" cy="232" r="34" fill="#0f78bf"/>
+  <circle cx="337" cy="215" r="10" fill="#ffffff"/>
+  <path d="M194 326h252" stroke="#16a34a" stroke-width="20" stroke-linecap="round"/>
+  <path d="M246 344h148" stroke="#143d73" stroke-width="12" stroke-linecap="round"/>
+</svg>

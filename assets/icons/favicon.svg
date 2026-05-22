@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="John VisionSeg logo">
+  <defs>
+    <linearGradient id="markBg" x1="16" y1="12" x2="112" y2="118" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0f78bf"/>
+      <stop offset="0.58" stop-color="#143d73"/>
+      <stop offset="1" stop-color="#07111f"/>
+    </linearGradient>
+    <linearGradient id="markAccent" x1="32" y1="26" x2="98" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5fd1ff"/>
+      <stop offset="1" stop-color="#16a34a"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#ffffff"/>
+  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#markBg)"/>
+  <path d="M64 30 92 41v20.8c0 18.4-11.2 31.8-28 39.2-16.8-7.4-28-20.8-28-39.2V41l28-11Z" fill="none" stroke="url(#markAccent)" stroke-width="5" stroke-linejoin="round"/>
+  <circle cx="64" cy="61" r="20" fill="#ffffff"/>
+  <circle cx="64" cy="61" r="12" fill="#07111f"/>
+  <circle cx="64" cy="61" r="5" fill="#5fd1ff"/>
+  <path d="M43 87h42" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
+  <path d="M44 43h12l8-8 8 8h12" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".92"/>
+</svg>

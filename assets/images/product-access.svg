@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-label="Controle de acesso">
+  <rect width="640" height="420" rx="28" fill="#f4fbf7"/>
+  <path d="M0 314h640v106H0z" fill="#dcefe4"/>
+  <rect x="210" y="68" width="220" height="272" rx="34" fill="#ffffff" stroke="#b9c8d8" stroke-width="10"/>
+  <rect x="248" y="106" width="144" height="54" rx="16" fill="#143d73"/>
+  <circle cx="320" cy="220" r="42" fill="#16a34a"/>
+  <path d="M298 220l16 17 31-36" fill="none" stroke="#ffffff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#d8e3ef">
+    <rect x="258" y="282" width="38" height="28" rx="8"/>
+    <rect x="301" y="282" width="38" height="28" rx="8"/>
+    <rect x="344" y="282" width="38" height="28" rx="8"/>
+  </g>
+  <path d="M160 142h50M430 142h50" stroke="#0f78bf" stroke-width="14" stroke-linecap="round"/>
+</svg>

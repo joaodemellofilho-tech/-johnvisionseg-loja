@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel JohnVisionSeg</title>
+<link rel="icon" href="../assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="admin-body">
+<div id="login" class="login">
+  <h1>Painel Seguro</h1>
+  <p>Acesse com o usuário administrador do Firebase Authentication.</p>
+  <input id="email" type="email" placeholder="E-mail admin" autocomplete="username">
+  <input id="password" type="password" placeholder="Senha" autocomplete="current-password">
+  <button onclick="login()" type="button">Entrar</button>
+  <small id="loginHint">Ative Email/Senha no Firebase Authentication e crie o usuário admin.</small>
+</div>
+
+<div id="appAdmin" class="admin-shell" style="display:none">
+  <aside class="sidebar">
+    <h2>JohnVisionSeg</h2>
+    <button onclick="showPanel('dashboard')" type="button">Dashboard</button>
+    <button onclick="showPanel('agent')" type="button">Agente IA</button>
+    <button onclick="showPanel('site')" type="button">Site</button>
+    <button onclick="showPanel('products')" type="button">Produtos</button>
+    <button onclick="showPanel('services')" type="button">Serviços</button>
+    <button onclick="showPanel('orders')" type="button">Pedidos</button>
+    <button onclick="showPanel('quotes')" type="button">Orçamentos</button>
+    <button onclick="showPanel('customers')" type="button">Clientes</button>
+    <button onclick="showPanel('portfolio')" type="button">Portfólio</button>
+    <button onclick="showPanel('testimonials')" type="button">Depoimentos</button>
+    <button onclick="exportData()" type="button">Backup JSON</button>
+    <button onclick="logout()" type="button">Sair</button>
+    <button onclick="resetData()" class="danger" type="button">Resetar</button>
+    <a href="../index.html" target="_blank" rel="noopener">Ver site/loja</a>
+  </aside>
+  <main class="admin-main">
+    <div id="notice" class="notice">Salvo com sucesso.</div>
+    <section id="panel-dashboard" class="panel active"><h1>Dashboard</h1><div id="dashboardBox" class="dashboard"></div></section>
+    <section id="panel-agent" class="panel">
+      <div class="agent-hero">
+        <div>
+          <span class="agent-kicker">Agente IA administrativo</span>
+          <h1>Copiloto do site</h1>
+          <p>Analisa loja, estoque, pedidos e orçamentos. Também executa comandos administrativos simples.</p>
+        </div>
+        <button onclick="runAgentCommand('gerar resumo executivo')" type="button">Gerar resumo</button>
+      </div>
+      <div id="agentReport"></div>
+      <div class="agent-console">
+        <div class="agent-console-head">
+          <div>
+            <h2>Comandar agente</h2>
+            <p>Exemplos: “ajustar estoque camera para 10”, “criar produto Sensor Porta | Alarmes | 79.90 | 5 | Sensor magnético”, “trocar título para Proteção completa”.</p>
+          </div>
+        </div>
+        <div class="agent-quick">
+          <button onclick="runAgentCommand('gerar resumo executivo')" type="button">Resumo</button>
+          <button onclick="runAgentCommand('listar alertas críticos')" type="button">Alertas</button>
+          <button onclick="runAgentCommand('marcar pedidos novos em atendimento')" type="button">Atender pedidos</button>
+          <button onclick="runAgentCommand('marcar orçamentos novos em atendimento')" type="button">Atender orçamentos</button>
+        </div>
+        <div class="agent-input-row">
+          <input id="agentCommand" placeholder="Digite um comando para o agente IA">
+          <button onclick="handleAgentInput()" type="button">Executar</button>
+        </div>
+        <div id="agentChat" class="agent-chat"></div>
+      </div>
+    </section>
+    <section id="panel-site" class="panel">
+      <h1>Editar Site</h1>
+      <div class="maintenance-control">
+        <div>
+          <span class="admin-kicker">Status da loja</span>
+          <h2>Modo manutencao</h2>
+          <p>Quando ativado, visitantes veem uma tela de aviso e nao acessam a vitrine. O painel continua funcionando.</p>
+        </div>
+        <label class="switch-row">
+          <input id="maintenanceMode" type="checkbox">
+          <span>Desligar loja para manutencao</span>
+        </label>
+      </div>
+      <div class="admin-settings-grid">
+        <input id="companyName" placeholder="Nome da empresa">
+        <input id="tagline" placeholder="Slogan">
+        <input id="whatsapp" placeholder="WhatsApp visual">
+        <input id="whatsappLink" placeholder="Link WhatsApp https://wa.me/...">
+        <input id="email" placeholder="E-mail">
+        <input id="pixKey" placeholder="Chave Pix para receber pagamentos">
+        <input id="pixName" placeholder="Nome do recebedor Pix">
+        <input id="paymentLink" placeholder="Link de pagamento Mercado Pago / PagSeguro / Stripe">
+        <input id="maintenanceTitle" placeholder="Titulo da tela de manutencao">
+      </div>
+      <input id="heroTitle" placeholder="Titulo principal">
+      <textarea id="heroSubtitle" placeholder="Subtitulo"></textarea>
+      <textarea id="aboutText" placeholder="Sobre a empresa"></textarea>
+      <textarea id="paymentInstructions" placeholder="Instrucoes de pagamento"></textarea>
+      <textarea id="maintenanceMessage" placeholder="Mensagem exibida quando a loja estiver em manutencao"></textarea>
+      <button onclick="saveSettings()" type="button">Salvar site</button>
+      <button onclick="toggleMaintenanceMode()" type="button" class="danger">Ligar/desligar manutencao</button>
+    </section>
+    <section id="panel-products" class="panel">
+      <h1>Produtos</h1>
+
+      <div class="quick-product-box">
+        <div class="quick-product-head">
+          <div>
+            <span class="admin-kicker">Cadastro rapido</span>
+            <h2>Adicionar produto na vitrine</h2>
+            <p>Digite o nome ou cole um link. O painel completa categoria, descricao, especificacoes, estoque minimo e imagem padrao automaticamente.</p>
+          </div>
+          <button onclick="quickClearProduct()" type="button">Limpar</button>
+        </div>
+
+        <div class="quick-product-grid">
+          <div class="quick-product-preview" id="quickProductPreview">IMG</div>
+          <div class="quick-product-fields">
+            <input id="quickProductName" placeholder="Nome do produto ou link do anuncio">
+            <div class="admin-inline">
+              <input id="quickProductCategory" list="quickCategories" placeholder="Categoria automatica">
+              <input id="quickProductPrice" type="number" step="0.01" placeholder="Preco de venda">
+              <input id="quickProductStock" type="number" placeholder="Estoque">
+            </div>
+            <div class="admin-inline">
+              <input id="quickProductImage" placeholder="Imagem 1 ou deixe automatico">
+              <input id="quickProductImage2" placeholder="Imagem 2 opcional">
+              <input id="quickProductImage3" placeholder="Imagem 3 opcional">
+            </div>
+            <div class="admin-inline two-col">
+              <input id="quickProductSource" placeholder="Link de compra / origem">
+              <input id="quickProductMinStock" type="number" placeholder="Estoque minimo">
+            </div>
+            <textarea id="quickProductDesc" placeholder="Descricao automatica"></textarea>
+            <textarea id="quickProductSpecs" placeholder="Especificacoes automaticas, uma por linha"></textarea>
+            <div class="quick-product-actions">
+              <input id="quickProductFile" type="file" accept="image/*" multiple onchange="quickUploadProductImages(this.files)">
+              <button onclick="quickAutoFillProduct()" type="button">Preencher automatico</button>
+              <button onclick="quickCreateProduct()" type="button">Adicionar e salvar</button>
+            </div>
+          </div>
+        </div>
+        <datalist id="quickCategories">
+          <option value="Cameras">
+          <option value="Cameras PTZ">
+          <option value="Kits CFTV">
+          <option value="Gravadores">
+          <option value="Alarmes">
+          <option value="Cerca Eletrica">
+          <option value="Acesso">
+        </datalist>
+        <div id="quickProductStatus" class="quick-product-status" hidden></div>
+        <a class="quick-store-link" href="../index.html#produtos" target="_blank" rel="noopener">Abrir vitrine de produtos</a>
+      </div>
+
+      <!-- ═══ ADICIONAR POR LINK ═══ -->
+      <details class="bulk-import" id="linkImportBox">
+        <summary>Importacao avancada por link</summary>
+        <h2 style="color:var(--cyan,#00d4ff)">⬡ Adicionar produto por link</h2>
+        <p>Cole o link de qualquer anúncio (Mercado Livre, Amazon, AliExpress, Shopee, site próprio…). O painel extrai imagem, título e preenche as especificações automaticamente.</p>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:10px">
+          <input id="linkImportUrl" type="url" placeholder="https://produto.mercadolivre.com.br/MLB-... ou qualquer link de produto" style="margin:0">
+          <button id="linkImportBtn" onclick="importProductByLink()" type="button" style="white-space:nowrap;min-width:140px">Buscar produto</button>
+        </div>
+        <div id="linkImportPreview" style="display:none;margin-top:16px;padding:16px;background:rgba(0,0,0,.25);border:1px solid rgba(0,212,255,0.2);border-radius:8px">
+          <div style="display:grid;grid-template-columns:140px 1fr;gap:16px;align-items:start">
+            <div id="linkImportImgWrap" style="height:140px;border-radius:8px;border:1px solid rgba(0,212,255,0.2);overflow:hidden;background:#060f1a;display:grid;place-items:center;font-size:2rem">📷</div>
+            <div style="display:grid;gap:8px">
+              <input id="linkImportName"     placeholder="Nome do produto" style="margin:0;font-weight:700">
+              <input id="linkImportCategory" placeholder="Categoria" style="margin:0">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+                <input id="linkImportPrice"  type="number" step="0.01" placeholder="Preço R$" style="margin:0">
+                <input id="linkImportStock"  type="number" placeholder="Estoque" style="margin:0">
+                <input id="linkImportMin"    type="number" placeholder="Estoque mínimo" style="margin:0">
+              </div>
+              <input id="linkImportImage"    placeholder="URL da imagem (preenchida automaticamente)" style="margin:0;font-size:.78rem;color:#7fafc8">
+              <textarea id="linkImportSpecs" rows="4" placeholder="Especificações (uma por linha, preenchido automaticamente)" style="margin:0;min-height:80px"></textarea>
+              <textarea id="linkImportDesc"  rows="2" placeholder="Descrição" style="margin:0;min-height:60px"></textarea>
+              <input id="linkImportSource"   placeholder="Link do produto (original)" style="margin:0;font-size:.78rem;color:#7fafc8">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:12px;justify-content:flex-end">
+            <button onclick="cancelLinkImport()" type="button" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15)">Cancelar</button>
+            <button onclick="confirmLinkImport()" type="button" style="background:linear-gradient(135deg,#00a6d6,#2563eb)">✓ Adicionar ao catálogo</button>
+          </div>
+        </div>
+        <div id="linkImportStatus" style="display:none;margin-top:10px;padding:10px 14px;border-radius:6px;font-size:.88rem;font-family:monospace"></div>
+      </details>
+
+      <!-- ═══ IMPORTAÇÃO EM MASSA ═══ -->
+      <details class="bulk-import">
+        <summary>Importacao em massa</summary>
+        <h2>Importar produtos com IA</h2>
+        <p>Cole um produto por linha. O painel cria os cadastros e preenche especificações automaticamente.</p>
+        <textarea id="bulkProductsInput" placeholder="Ex: Mini Câmera PTZ Wi-Fi 5MP com Rastreamento Automático..."></textarea>
+      <div class="ia-generator" style="margin-top:16px;padding:12px;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.2);border-radius:8px;">
+        <h3 style="color:var(--cyan,#00d4ff)">🖼️ Gerar produto via IA (Prompt Supremo)</h3>
+        <input id="iaImageInput" type="file" accept="image/*" style="margin-bottom:8px;">
+        <button onclick="generateProductFromImage()" type="button" style="background:linear-gradient(135deg,#00a6d6,#2563eb);color:#fff;">Gerar a partir da imagem</button>
+      </div>
+        <button onclick="importBulkProducts()" type="button">Importar e preencher</button>
+      </details>
+      <details class="bulk-import">
+        <summary>Importar Mercado Livre em lote</summary>
+        <h2>Mercado Livre</h2>
+        <p>Cole links ou códigos MLB, um por linha. O painel tenta buscar dados públicos do anúncio e também salva o link de compra.</p>
+        <textarea id="mlProductsInput" placeholder="Ex: https://produto.mercadolivre.com.br/MLB-1234567890-produto ou MLB1234567890"></textarea>
+        <button onclick="importMercadoLivreProducts()" type="button">Importar do Mercado Livre</button>
+      </details>
+      <div id="productsList"></div>
+      <button onclick="addProduct()" type="button">Adicionar produto manual</button>
+      <button onclick="saveProducts()" type="button">Salvar produtos</button>
+    </section>
+    <section id="panel-services" class="panel"><h1>Serviços</h1><div id="servicesList"></div><button onclick="addService()" type="button">Adicionar serviço</button><button onclick="saveServices()" type="button">Salvar serviços</button></section>
+    <section id="panel-orders" class="panel"><h1>Pedidos da Loja</h1><div id="ordersList"></div></section>
+    <section id="panel-quotes" class="panel"><h1>Orçamentos Recebidos</h1><div id="quotesList"></div></section>
+    <section id="panel-customers" class="panel"><h1>Clientes</h1><div id="customersList"></div></section>
+    <section id="panel-portfolio" class="panel"><h1>Portfólio</h1><div id="portfolioList"></div><button onclick="addPortfolio()" type="button">Adicionar projeto</button><button onclick="savePortfolio()" type="button">Salvar portfólio</button></section>
+    <section id="panel-testimonials" class="panel"><h1>Depoimentos</h1><div id="testimonialsList"></div><button onclick="addTestimonial()" type="button">Adicionar depoimento</button><button onclick="saveTestimonials()" type="button">Salvar depoimentos</button></section>
+  </main>
+</div>
+<script src="../assets/js/firebase-config.js"></script>
+<script src="../assets/js/app-data.js"></script>
+<script src="ai_mock.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

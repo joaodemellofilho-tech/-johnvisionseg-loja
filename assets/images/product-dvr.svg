@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-label="DVR gravador">
+  <rect width="640" height="420" rx="28" fill="#f4f7fb"/>
+  <path d="M0 310h640v110H0z" fill="#dde8f2"/>
+  <rect x="142" y="134" width="356" height="154" rx="24" fill="#ffffff" stroke="#b9c8d8" stroke-width="10"/>
+  <rect x="170" y="166" width="166" height="26" rx="13" fill="#143d73"/>
+  <rect x="170" y="208" width="232" height="18" rx="9" fill="#d8e3ef"/>
+  <circle cx="443" cy="211" r="32" fill="#07111f"/>
+  <circle cx="443" cy="211" r="16" fill="#0f78bf"/>
+  <circle cx="444" cy="172" r="7" fill="#16a34a"/>
+  <circle cx="466" cy="172" r="7" fill="#0f78bf"/>
+  <circle cx="488" cy="172" r="7" fill="#d97706"/>
+  <path d="M188 288h264" stroke="#143d73" stroke-width="16" stroke-linecap="round"/>
+</svg>

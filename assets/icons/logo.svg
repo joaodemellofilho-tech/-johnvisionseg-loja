@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 140" role="img" aria-label="John VisionSeg Cameras">
+  <defs>
+    <linearGradient id="brandBg" x1="20" y1="15" x2="120" y2="125" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0f78bf"/>
+      <stop offset="0.58" stop-color="#143d73"/>
+      <stop offset="1" stop-color="#07111f"/>
+    </linearGradient>
+    <linearGradient id="brandAccent" x1="42" y1="30" x2="105" y2="104" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5fd1ff"/>
+      <stop offset="1" stop-color="#16a34a"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="140" rx="22" fill="#ffffff"/>
+  <g>
+    <rect x="18" y="18" width="104" height="104" rx="23" fill="url(#brandBg)"/>
+    <path d="M70 32 96 42v19.5C96 79 85.6 91.5 70 98.5 54.4 91.5 44 79 44 61.5V42l26-10Z" fill="none" stroke="url(#brandAccent)" stroke-width="4.5" stroke-linejoin="round"/>
+    <circle cx="70" cy="61" r="18" fill="#ffffff"/>
+    <circle cx="70" cy="61" r="10" fill="#07111f"/>
+    <circle cx="70" cy="61" r="4" fill="#5fd1ff"/>
+    <path d="M51 85h38" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+    <path d="M54 85h32" stroke="url(#brandAccent)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M51 44h11l8-7 8 7h11" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".92"/>
+  </g>
+  <g fill="#07111f">
+    <text x="146" y="67" font-family="Inter, Arial, sans-serif" font-size="38" font-weight="800" letter-spacing="0">John@VisionSeg</text>
+    <text x="148" y="98" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="3" fill="#0f78bf">CAMERAS | CFTV | SEGURANCA</text>
+  </g>
+  <path d="M148 112h220" stroke="#16a34a" stroke-width="4" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-label="Camera de seguranca">
+  <rect width="640" height="420" rx="28" fill="#eef4fb"/>
+  <path d="M0 315h640v105H0z" fill="#dce9f5"/>
+  <circle cx="510" cy="88" r="54" fill="#d7e6f3"/>
+  <rect x="150" y="126" width="272" height="122" rx="28" fill="#ffffff" stroke="#b9c8d8" stroke-width="10"/>
+  <rect x="412" y="156" width="86" height="62" rx="15" fill="#143d73"/>
+  <circle cx="287" cy="187" r="51" fill="#07111f"/>
+  <circle cx="287" cy="187" r="29" fill="#0f78bf"/>
+  <circle cx="298" cy="175" r="9" fill="#ffffff"/>
+  <path d="M214 248h136l-22 54h-92z" fill="#143d73"/>
+  <rect x="200" y="300" width="162" height="22" rx="11" fill="#0f78bf"/>
+  <path d="M132 130l42-54h228l44 54z" fill="#f8fafc" stroke="#b9c8d8" stroke-width="8" stroke-linejoin="round"/>
+</svg>
