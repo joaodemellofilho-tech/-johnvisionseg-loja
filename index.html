@@ -766,7 +766,7 @@
     <h2>// Carrinho</h2>
     <button id="closeCart" type="button" aria-label="Fechar carrinho">x</button>
   </div>
-  <p class="cart-helper">Revise os itens e envie pelo WhatsApp para confirmar pagamento, disponibilidade e entrega.</p>
+  <p class="cart-helper">Revise os itens e escolha uma forma de pagamento para finalizar o pedido.</p>
   <div id="cartItems"></div>
   <div class="cart-total"><strong>Total:</strong> <span id="cartTotal">R$ 0,00</span></div>
   <div class="payment-box">
@@ -787,17 +787,12 @@
         <strong>Link</strong>
         <span>Checkout Mercado Pago</span>
       </button>
-      <button class="payment-method-card active" id="negotiatePaymentBtn" type="button" data-payment-method="whatsapp">
-        <strong>WhatsApp</strong>
-        <span>Combinar pagamento</span>
-      </button>
     </div>
     <p id="paymentInfo" class="payment-info">Configure a chave Pix ou link de pagamento no painel.</p>
   </div>
   <input id="customerName" autocomplete="name" placeholder="// nome do cliente">
   <input id="customerPhone" autocomplete="tel" placeholder="// WhatsApp do cliente">
   <textarea id="customerAddress" placeholder="// endereço / observação"></textarea>
-  <button class="btn primary full" id="checkoutBtn" type="button">Finalizar pelo WhatsApp</button>
 </aside>
 
 <div class="payment-modal" id="cardPaymentModal" aria-hidden="true">

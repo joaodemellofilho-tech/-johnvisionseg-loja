@@ -2,7 +2,7 @@ let app;
 let cart = [];
 let lastAppSync = localStorage.getItem("johnvisionseg_app_pro_updated_at") || "";
 let cardPaymentOrder = null;
-let selectedPaymentMethod = "whatsapp";
+let selectedPaymentMethod = "link";
 
 const grid = document.getElementById("productsGrid");
 const search = document.getElementById("searchInput");
@@ -320,7 +320,6 @@ function renderPaymentOptions() {
   const pixBtn = document.getElementById("copyPixBtn");
   const linkBtn = document.getElementById("paymentLinkBtn");
   const cardBtn = document.getElementById("cardPaymentBtn");
-  const negotiateBtn = document.getElementById("negotiatePaymentBtn");
   const info = document.getElementById("paymentInfo");
   if (!pixBtn || !linkBtn || !info || !app?.settings) return;
 
@@ -331,11 +330,9 @@ function renderPaymentOptions() {
   pixBtn.disabled = !hasPix;
   linkBtn.disabled = !hasLink || !cart.length;
   if (cardBtn) cardBtn.disabled = !hasCardPayment || !cart.length;
-  if (negotiateBtn) negotiateBtn.disabled = !cart.length;
   setPaymentCardState(pixBtn, hasPix, "Pix", hasPix ? "Copia a chave Pix" : "Configure no painel");
   setPaymentCardState(linkBtn, hasLink, "Link", hasCheckoutApi ? "API Mercado Pago" : "Checkout seguro");
   if (cardBtn) setPaymentCardState(cardBtn, hasCardPayment, "Cartao", hasCardPayment ? "Mercado Livre / Mercado Pago" : "Configure public key");
-  if (negotiateBtn) setPaymentCardState(negotiateBtn, true, "WhatsApp", cart.length ? "Combinar pagamento" : "Adicione itens");
   updatePaymentMethodSelection();
 
   const details = [];
@@ -352,7 +349,7 @@ function setPaymentCardState(button, enabled, title, subtitle) {
 }
 
 function selectPaymentMethod(method) {
-  selectedPaymentMethod = method || "whatsapp";
+  selectedPaymentMethod = method || "link";
   updatePaymentMethodSelection();
 }
 
@@ -366,10 +363,9 @@ function getSelectedPaymentLabel() {
   const labels = {
     pix: "Pix",
     card: "Cartao Mercado Livre / Mercado Pago",
-    link: "Checkout Mercado Pago",
-    whatsapp: "Combinar pelo WhatsApp"
+    link: "Checkout Mercado Pago"
   };
-  return labels[selectedPaymentMethod] || labels.whatsapp;
+  return labels[selectedPaymentMethod] || labels.link;
 }
 
 async function copyPixKey() {
@@ -384,7 +380,7 @@ async function copyPixKey() {
   ].filter(Boolean).join("\n");
   try {
     await navigator.clipboard.writeText(text);
-    alert("Chave Pix copiada. Depois do pagamento, envie o comprovante pelo WhatsApp.");
+    alert("Chave Pix copiada. Depois do pagamento, guarde o comprovante.");
   } catch {
     window.prompt("Copie a chave Pix:", key);
   }
@@ -679,14 +675,11 @@ function bindEvents() {
     });
   }
   if (sortProducts) sortProducts.onchange = renderProducts;
-  document.getElementById("checkoutBtn").onclick = checkout;
   document.getElementById("copyPixBtn").onclick = () => { selectPaymentMethod("pix"); copyPixKey(); };
   document.getElementById("paymentLinkBtn").onclick = () => { selectPaymentMethod("link"); openPaymentLink(); };
-  const negotiatePaymentBtn = document.getElementById("negotiatePaymentBtn");
   const cardPaymentBtn = document.getElementById("cardPaymentBtn");
   const closeCardPaymentBtn = document.getElementById("closeCardPayment");
   if (cardPaymentBtn) cardPaymentBtn.onclick = () => { selectPaymentMethod("card"); openCardPayment(); };
-  if (negotiatePaymentBtn) negotiatePaymentBtn.onclick = () => { selectPaymentMethod("whatsapp"); checkout(); };
   if (closeCardPaymentBtn) closeCardPaymentBtn.onclick = closeCardPayment;
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
