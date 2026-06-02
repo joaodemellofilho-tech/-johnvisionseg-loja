@@ -8,6 +8,8 @@ const defaultApp = {
     pixKey: "",
     pixName: "John@VisionSeg Cameras",
     paymentLink: "",
+    mercadoPagoPublicKey: "",
+    mercadoPagoMaxInstallments: 10,
     paymentInstructions: "Apos o pagamento, envie o comprovante pelo WhatsApp para confirmarmos disponibilidade e entrega.",
     maintenanceMode: false,
     maintenanceTitle: "Loja em manutencao",
