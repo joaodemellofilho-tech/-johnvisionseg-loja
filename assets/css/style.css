@@ -810,6 +810,11 @@ textarea { min-height: 112px; resize: vertical; }
   font-size: .78rem;
   line-height: 1.45;
 }
+.order button + button,
+.product-editor button + button {
+  margin-left: 6px;
+  margin-top: 6px;
+}
 .qty-actions { display: flex; gap: 6px; align-items: center; }
 .qty-actions button {
   width: 30px; height: 30px;

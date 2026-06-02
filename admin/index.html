@@ -146,6 +146,11 @@
               <input id="quickProductSupplierUrl" placeholder="Link do fornecedor">
               <input id="quickProductSku" placeholder="SKU/codigo do fornecedor">
             </div>
+            <div class="admin-inline">
+              <input id="quickProductMargin" type="number" step="1" value="35" placeholder="Margem %">
+              <button onclick="quickAutomateDropshipping()" type="button">Automatizar dropshipping</button>
+              <button onclick="quickCalculateSalePrice()" type="button">Calcular preco</button>
+            </div>
             <textarea id="quickProductDesc" placeholder="Descricao automatica"></textarea>
             <textarea id="quickProductSpecs" placeholder="Especificacoes automaticas, uma por linha"></textarea>
             <div class="quick-product-actions">

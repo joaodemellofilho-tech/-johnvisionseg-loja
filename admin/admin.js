@@ -399,6 +399,8 @@ function renderProducts() {
           <textarea data-desc="${index}" placeholder="Descrição">${escapeHtml(product.desc)}</textarea>
           <textarea data-specs="${index}" placeholder="Especificações, uma por linha">${escapeHtml((product.specs || []).join("\n"))}</textarea>
           <button onclick="autoFillProduct(${index})" type="button">Preencher automático</button>
+          <button onclick="automateProductDropshipping(${index})" type="button">Automatizar dropshipping</button>
+          <button onclick="repriceProductByMargin(${index})" type="button">Recalcular preco 35%</button>
           <button class="danger" onclick="removeProduct(${index})" type="button">Remover</button>
         </div>
       </div>
@@ -420,6 +422,67 @@ function renderProductMarginSummary(product) {
   const delivery = product.deliveryTime ? `Prazo: ${escapeHtml(product.deliveryTime)} | ` : "";
   const financial = cost > 0 ? `Custo: ${brl(cost)} | Lucro: ${brl(profit)} (${margin.toFixed(0)}%)` : "Informe o custo para calcular lucro.";
   return `${mode} | ${supplier}${delivery}${financial}`;
+}
+
+function getSupplierFromUrl(url) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    if (host.includes("mercadolivre")) return "Mercado Livre";
+    if (host.includes("aliexpress")) return "AliExpress";
+    if (host.includes("shopee")) return "Shopee";
+    if (host.includes("amazon")) return "Amazon";
+    return host.split(".")[0].replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+  } catch {
+    return "";
+  }
+}
+
+function getDeliveryBySupplier(supplier) {
+  const text = normalizeText(supplier);
+  if (text.includes("mercado livre") || text.includes("amazon")) return "3 a 8 dias uteis";
+  if (text.includes("shopee")) return "7 a 15 dias uteis";
+  if (text.includes("aliexpress")) return "15 a 30 dias uteis";
+  return "7 a 15 dias uteis";
+}
+
+function roundSalePrice(value) {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return Math.max(9.9, Math.ceil(value / 10) * 10 - 0.1);
+}
+
+function calculateSalePrice(cost, margin) {
+  const numericCost = Number(cost || 0);
+  const numericMargin = Math.min(80, Math.max(5, Number(margin || 35)));
+  if (numericCost <= 0) return 0;
+  return roundSalePrice(numericCost / (1 - numericMargin / 100));
+}
+
+function quickCalculateSalePrice() {
+  const cost = Number(document.getElementById("quickProductCost").value || 0);
+  if (cost <= 0) {
+    setQuickProductStatus("Informe o custo no fornecedor para calcular o preco de venda.", "error");
+    return;
+  }
+  const margin = Number(document.getElementById("quickProductMargin").value || 35);
+  document.getElementById("quickProductPrice").value = calculateSalePrice(cost, margin).toFixed(2);
+  setQuickProductStatus(`Preco calculado com margem de ${margin}% sobre o custo.`, "success");
+}
+
+function quickAutomateDropshipping() {
+  const source = document.getElementById("quickProductSupplierUrl").value.trim() || document.getElementById("quickProductSource").value.trim() || document.getElementById("quickProductName").value.trim();
+  if (source.startsWith("http")) {
+    const supplier = getSupplierFromUrl(source);
+    document.getElementById("quickProductSource").value = document.getElementById("quickProductSource").value.trim() || source;
+    document.getElementById("quickProductSupplierUrl").value = source;
+    document.getElementById("quickProductSupplier").value = document.getElementById("quickProductSupplier").value.trim() || supplier;
+    document.getElementById("quickProductDelivery").value = document.getElementById("quickProductDelivery").value.trim() || getDeliveryBySupplier(supplier);
+    document.getElementById("quickProductSku").value = document.getElementById("quickProductSku").value.trim() || extractMercadoLivreId(source);
+  }
+  document.getElementById("quickProductFulfillment").value = "dropshipping";
+  if (!Number(document.getElementById("quickProductStock").value || 0)) document.getElementById("quickProductStock").value = 999;
+  if (!Number(document.getElementById("quickProductMinStock").value || 0)) document.getElementById("quickProductMinStock").value = 0;
+  if (Number(document.getElementById("quickProductCost").value || 0) > 0) quickCalculateSalePrice();
+  setQuickProductStatus("Dropshipping automatizado: fornecedor, prazo, estoque virtual e margem preparados.", "success");
 }
 
 async function quickAutoFillProduct() {
@@ -458,7 +521,17 @@ async function quickAutoFillProduct() {
   document.getElementById("quickProductDesc").value = current.desc && current.desc !== "Descricao" ? current.desc : (linkData?.desc || generated.desc);
   document.getElementById("quickProductSpecs").value = (linkData?.specs?.length ? linkData.specs : generated.specs).join("\n");
   document.getElementById("quickProductImage").value = imageUrl;
-  if (maybeLink) document.getElementById("quickProductSource").value = maybeLink;
+  if (maybeLink) {
+    document.getElementById("quickProductSource").value = maybeLink;
+    if (maybeLink.startsWith("http")) {
+      const supplier = getSupplierFromUrl(maybeLink);
+      document.getElementById("quickProductFulfillment").value = "dropshipping";
+      document.getElementById("quickProductSupplier").value = document.getElementById("quickProductSupplier").value.trim() || supplier;
+      document.getElementById("quickProductSupplierUrl").value = document.getElementById("quickProductSupplierUrl").value.trim() || maybeLink;
+      document.getElementById("quickProductDelivery").value = document.getElementById("quickProductDelivery").value.trim() || getDeliveryBySupplier(supplier);
+      document.getElementById("quickProductSku").value = document.getElementById("quickProductSku").value.trim() || extractMercadoLivreId(maybeLink);
+    }
+  }
   updateQuickProductPreview(collectQuickProductImages());
   setQuickProductStatus("Campos preenchidos automaticamente. Revise e clique em Adicionar e salvar.", "success");
 }
@@ -524,6 +597,8 @@ function quickClearProduct() {
   });
   const fulfillment = document.getElementById("quickProductFulfillment");
   if (fulfillment) fulfillment.value = "local";
+  const margin = document.getElementById("quickProductMargin");
+  if (margin) margin.value = "35";
   const file = document.getElementById("quickProductFile");
   if (file) file.value = "";
   updateQuickProductPreview("");
@@ -694,6 +769,42 @@ function saveProducts() {
     desc: document.querySelector(`[data-desc="${index}"]`).value
   }));
   saveApp(app);
+  notice();
+}
+
+function automateProductDropshipping(index) {
+  const supplierUrlInput = document.querySelector(`[data-supplier-url="${index}"]`);
+  const sourceInput = document.querySelector(`[data-ml-url="${index}"]`);
+  const supplierInput = document.querySelector(`[data-supplier="${index}"]`);
+  const deliveryInput = document.querySelector(`[data-delivery="${index}"]`);
+  const skuInput = document.querySelector(`[data-supplier-sku="${index}"]`);
+  const fulfillmentInput = document.querySelector(`[data-fulfillment="${index}"]`);
+  const stockInput = document.querySelector(`[data-stock="${index}"]`);
+  const minInput = document.querySelector(`[data-min="${index}"]`);
+  const source = supplierUrlInput?.value.trim() || sourceInput?.value.trim() || app.products[index]?.sourceUrl || "";
+  const supplier = source.startsWith("http") ? getSupplierFromUrl(source) : supplierInput?.value.trim();
+  if (fulfillmentInput) fulfillmentInput.value = "dropshipping";
+  if (supplierUrlInput && source) supplierUrlInput.value = source;
+  if (supplierInput && supplier && !supplierInput.value.trim()) supplierInput.value = supplier;
+  if (deliveryInput && !deliveryInput.value.trim()) deliveryInput.value = getDeliveryBySupplier(supplier);
+  if (skuInput && !skuInput.value.trim()) skuInput.value = extractMercadoLivreId(source);
+  if (stockInput && Number(stockInput.value || 0) <= 0) stockInput.value = 999;
+  if (minInput && Number(minInput.value || 0) > 0) minInput.value = 0;
+  saveProducts();
+  renderProducts();
+  notice();
+}
+
+function repriceProductByMargin(index, margin = 35) {
+  const cost = Number(document.querySelector(`[data-cost="${index}"]`)?.value || 0);
+  if (cost <= 0) {
+    alert("Informe o custo do fornecedor antes de recalcular o preco.");
+    return;
+  }
+  const priceInput = document.querySelector(`[data-price="${index}"]`);
+  if (priceInput) priceInput.value = calculateSalePrice(cost, margin).toFixed(2);
+  saveProducts();
+  renderProducts();
   notice();
 }
 
@@ -974,7 +1085,16 @@ function saveServices() {
 function renderOrders() {
   document.getElementById("ordersList").innerHTML = app.orders.length ? app.orders.map((order, index) => `<div class="admin-card order"><span class="status">${escapeHtml(order.status)}</span><h3>${escapeHtml(order.name)}</h3><p>${escapeHtml(order.phone)}</p><p>${escapeHtml(order.address || "")}</p><p><strong>${brl(order.total)}</strong> • ${escapeHtml(order.date)}</p><ul>${order.items.map((item) => `<li>${item.qty}x ${escapeHtml(item.name)}</li>`).join("")}</ul><select onchange="changeOrderStatus(${index}, this.value)"><option ${order.status === "Novo" ? "selected" : ""}>Novo</option><option ${order.status === "Em atendimento" ? "selected" : ""}>Em atendimento</option><option ${order.status === "Finalizado" ? "selected" : ""}>Finalizado</option><option ${order.status === "Cancelado" ? "selected" : ""}>Cancelado</option></select></div>`).join("") : "<p>Nenhum pedido ainda.</p>";
 }
-function changeOrderStatus(index, status) { app.orders[index].status = status; saveApp(app); renderOrders(); renderAgent(); renderDashboard(); }
+function changeOrderStatus(index, status) {
+  app.orders[index].status = status;
+  if (status === "Pago" && app.orders[index].fulfillmentStatus === "Aguardando pagamento") {
+    app.orders[index].fulfillmentStatus = "Comprar no fornecedor";
+  }
+  saveApp(app);
+  renderOrders();
+  renderAgent();
+  renderDashboard();
+}
 
 function renderOrders() {
   document.getElementById("ordersList").innerHTML = app.orders.length ? app.orders.map((order, index) => {
@@ -1002,6 +1122,8 @@ function renderOrders() {
           </select>
         </div>
         <button onclick="copySupplierOrder(${index})" type="button">Copiar pedido para fornecedor</button>
+        <button onclick="openOrderSuppliers(${index})" type="button">Abrir fornecedores</button>
+        <button onclick="automateOrderStatus(${index})" type="button">Automatizar status</button>
       </div>
     `;
   }).join("") : "<p>Nenhum pedido ainda.</p>";
@@ -1021,6 +1143,35 @@ function calculateOrderSupplierCost(order) {
 }
 
 function changeOrderFulfillmentStatus(index, status) { app.orders[index].fulfillmentStatus = status; saveApp(app); renderOrders(); }
+
+function automateOrderStatus(index) {
+  const order = app.orders[index];
+  if (!order) return;
+  if (order.status === "Novo") {
+    order.status = "Em atendimento";
+    order.fulfillmentStatus = "Aguardando pagamento";
+  } else if (order.status === "Em atendimento" || order.status === "Pago") {
+    order.status = "Pago";
+    order.fulfillmentStatus = "Comprar no fornecedor";
+  } else if (order.fulfillmentStatus === "Comprar no fornecedor") {
+    order.fulfillmentStatus = "Pedido no fornecedor";
+  } else if (order.fulfillmentStatus === "Pedido no fornecedor") {
+    order.fulfillmentStatus = "Enviado";
+  }
+  saveApp(app);
+  renderOrders();
+  renderAgent();
+  renderDashboard();
+}
+
+function openOrderSuppliers(index) {
+  const links = [...new Set((app.orders[index]?.items || []).map((item) => item.supplierUrl).filter(Boolean))];
+  if (!links.length) {
+    alert("Este pedido nao tem links de fornecedor cadastrados.");
+    return;
+  }
+  links.slice(0, 8).forEach((link) => window.open(link, "_blank", "noopener"));
+}
 
 async function copySupplierOrder(index) {
   const order = app.orders[index];
@@ -1308,8 +1459,8 @@ function confirmLinkImport() {
     mercadoLivreId:  extractMercadoLivreId(source),
     sourceUrl:       source,
     fulfillment:     source ? 'dropshipping' : 'local',
-    supplier:        source ? new URL(source).hostname.replace(/^www\./, '') : '',
-    deliveryTime:    source ? 'Prazo informado apos confirmacao do fornecedor' : 'Pronta entrega',
+    supplier:        source ? getSupplierFromUrl(source) : '',
+    deliveryTime:    source ? getDeliveryBySupplier(getSupplierFromUrl(source)) : 'Pronta entrega',
     cost:            0,
     supplierUrl:     source,
     supplierSku:     extractMercadoLivreId(source) || '',
