@@ -380,6 +380,21 @@ function renderProducts() {
             <input value="${escapeHtml(product.mercadoLivreId || "")}" data-ml-id="${index}" placeholder="Código MLB">
             <button onclick="syncMercadoLivreProduct(${index})" type="button">Buscar ML</button>
           </div>
+          <div class="admin-inline">
+            <select data-fulfillment="${index}">
+              <option value="local" ${getFulfillmentMode(product) === "local" ? "selected" : ""}>Produto proprio</option>
+              <option value="dropshipping" ${getFulfillmentMode(product) === "dropshipping" ? "selected" : ""}>Dropshipping</option>
+              <option value="preorder" ${getFulfillmentMode(product) === "preorder" ? "selected" : ""}>Sob encomenda</option>
+            </select>
+            <input value="${escapeHtml(product.supplier || "")}" data-supplier="${index}" placeholder="Fornecedor">
+            <input value="${escapeHtml(product.deliveryTime || "")}" data-delivery="${index}" placeholder="Prazo de entrega">
+          </div>
+          <div class="admin-inline">
+            <input type="number" step="0.01" value="${Number(product.cost || 0)}" data-cost="${index}" placeholder="Custo fornecedor">
+            <input value="${escapeHtml(product.supplierUrl || product.sourceUrl || "")}" data-supplier-url="${index}" placeholder="Link do fornecedor">
+            <input value="${escapeHtml(product.supplierSku || "")}" data-supplier-sku="${index}" placeholder="SKU fornecedor">
+          </div>
+          <div class="dropship-summary">${renderProductMarginSummary(product)}</div>
           <input type="file" accept="image/*" multiple onchange="uploadProductImages(${index}, this.files)">
           <textarea data-desc="${index}" placeholder="Descrição">${escapeHtml(product.desc)}</textarea>
           <textarea data-specs="${index}" placeholder="Especificações, uma por linha">${escapeHtml((product.specs || []).join("\n"))}</textarea>
@@ -389,6 +404,22 @@ function renderProducts() {
       </div>
     </div>
   `).join("");
+}
+
+function getFulfillmentMode(product) {
+  return ["dropshipping", "preorder"].includes(product.fulfillment) ? product.fulfillment : "local";
+}
+
+function renderProductMarginSummary(product) {
+  const cost = Number(product.cost || 0);
+  const price = Number(product.price || 0);
+  const profit = price - cost;
+  const margin = price > 0 && cost > 0 ? (profit / price) * 100 : 0;
+  const mode = getFulfillmentMode(product) === "dropshipping" ? "Dropshipping" : getFulfillmentMode(product) === "preorder" ? "Sob encomenda" : "Pronta entrega";
+  const supplier = product.supplier ? `Fornecedor: ${escapeHtml(product.supplier)} | ` : "";
+  const delivery = product.deliveryTime ? `Prazo: ${escapeHtml(product.deliveryTime)} | ` : "";
+  const financial = cost > 0 ? `Custo: ${brl(cost)} | Lucro: ${brl(profit)} (${margin.toFixed(0)}%)` : "Informe o custo para calcular lucro.";
+  return `${mode} | ${supplier}${delivery}${financial}`;
 }
 
 async function quickAutoFillProduct() {
@@ -465,9 +496,16 @@ async function quickCreateProduct() {
     mercadoLivreUrl: source.includes("mercadolivre") ? source : "",
     mercadoLivreId: extractMercadoLivreId(source),
     sourceUrl: source,
+    fulfillment: document.getElementById("quickProductFulfillment").value || "local",
+    supplier: document.getElementById("quickProductSupplier").value.trim(),
+    deliveryTime: document.getElementById("quickProductDelivery").value.trim(),
+    cost: Number(document.getElementById("quickProductCost").value || 0),
+    supplierUrl: document.getElementById("quickProductSupplierUrl").value.trim() || source,
+    supplierSku: document.getElementById("quickProductSku").value.trim(),
     specs: document.getElementById("quickProductSpecs").value.split("\n").map((item) => item.trim()).filter(Boolean),
     desc: document.getElementById("quickProductDesc").value.trim() || generated.desc
   };
+  if (product.fulfillment === "dropshipping" && !product.deliveryTime) product.deliveryTime = "Prazo informado apos confirmacao do fornecedor";
   if (!product.specs.length) product.specs = generated.specs;
 
   app.products.unshift(product);
@@ -480,10 +518,12 @@ async function quickCreateProduct() {
 }
 
 function quickClearProduct() {
-  ["quickProductName", "quickProductCategory", "quickProductPrice", "quickProductStock", "quickProductImage", "quickProductImage2", "quickProductImage3", "quickProductSource", "quickProductMinStock", "quickProductDesc", "quickProductSpecs"].forEach((id) => {
+  ["quickProductName", "quickProductCategory", "quickProductPrice", "quickProductStock", "quickProductImage", "quickProductImage2", "quickProductImage3", "quickProductSource", "quickProductMinStock", "quickProductSupplier", "quickProductDelivery", "quickProductCost", "quickProductSupplierUrl", "quickProductSku", "quickProductDesc", "quickProductSpecs"].forEach((id) => {
     const element = document.getElementById(id);
     if (element) element.value = "";
   });
+  const fulfillment = document.getElementById("quickProductFulfillment");
+  if (fulfillment) fulfillment.value = "local";
   const file = document.getElementById("quickProductFile");
   if (file) file.value = "";
   updateQuickProductPreview("");
@@ -614,7 +654,7 @@ function getStorefrontFallbackImage(product) {
 
 function addProduct() {
   const generated = generateProductProfile({ name: "Novo produto", category: "Cameras", price: 0, stock: 0, desc: "" });
-  app.products.unshift({ id: Date.now(), name: "Novo produto", category: generated.category, price: generated.price, stock: generated.stock, minStock: generated.minStock, emoji: generated.emoji, imageUrl: getStorefrontFallbackImage(generated), specs: generated.specs, desc: generated.desc });
+  app.products.unshift({ id: Date.now(), name: "Novo produto", category: generated.category, price: generated.price, stock: generated.stock, minStock: generated.minStock, emoji: generated.emoji, imageUrl: getStorefrontFallbackImage(generated), fulfillment: "local", supplier: "", deliveryTime: "Pronta entrega", cost: 0, supplierUrl: "", supplierSku: "", specs: generated.specs, desc: generated.desc });
   saveApp(app);
   renderProducts();
   renderDashboard();
@@ -643,6 +683,13 @@ function saveProducts() {
     images: collectProductEditorImages(index),
     mercadoLivreUrl: document.querySelector(`[data-ml-url="${index}"]`).value,
     mercadoLivreId: document.querySelector(`[data-ml-id="${index}"]`).value,
+    sourceUrl: product.sourceUrl || "",
+    fulfillment: document.querySelector(`[data-fulfillment="${index}"]`).value || "local",
+    supplier: document.querySelector(`[data-supplier="${index}"]`).value,
+    deliveryTime: document.querySelector(`[data-delivery="${index}"]`).value,
+    cost: Number(document.querySelector(`[data-cost="${index}"]`).value || 0),
+    supplierUrl: document.querySelector(`[data-supplier-url="${index}"]`).value,
+    supplierSku: document.querySelector(`[data-supplier-sku="${index}"]`).value,
     specs: document.querySelector(`[data-specs="${index}"]`).value.split("\n").map((item) => item.trim()).filter(Boolean),
     desc: document.querySelector(`[data-desc="${index}"]`).value
   }));
@@ -929,6 +976,71 @@ function renderOrders() {
 }
 function changeOrderStatus(index, status) { app.orders[index].status = status; saveApp(app); renderOrders(); renderAgent(); renderDashboard(); }
 
+function renderOrders() {
+  document.getElementById("ordersList").innerHTML = app.orders.length ? app.orders.map((order, index) => {
+    const supplierCost = Number(order.supplierCost || calculateOrderSupplierCost(order));
+    const profit = Number(order.profit || Number(order.total || 0) - supplierCost);
+    return `
+      <div class="admin-card order">
+        <span class="status">${escapeHtml(order.status)}</span>
+        <h3>${escapeHtml(order.name)}</h3>
+        <p>${escapeHtml(order.phone)}</p>
+        <p>${escapeHtml(order.address || "")}</p>
+        <p><strong>${brl(order.total)}</strong> | ${escapeHtml(order.date)}</p>
+        <div class="order-profit">Custo fornecedor: ${brl(supplierCost)} | Lucro estimado: ${brl(profit)}</div>
+        <ul>${(order.items || []).map((item) => renderOrderItem(item)).join("")}</ul>
+        <div class="admin-inline">
+          <select onchange="changeOrderStatus(${index}, this.value)">
+            <option ${order.status === "Novo" ? "selected" : ""}>Novo</option>
+            <option ${order.status === "Em atendimento" ? "selected" : ""}>Em atendimento</option>
+            <option ${order.status === "Pago" ? "selected" : ""}>Pago</option>
+            <option ${order.status === "Finalizado" ? "selected" : ""}>Finalizado</option>
+            <option ${order.status === "Cancelado" ? "selected" : ""}>Cancelado</option>
+          </select>
+          <select onchange="changeOrderFulfillmentStatus(${index}, this.value)">
+            ${["Aguardando pagamento", "Comprar no fornecedor", "Pedido no fornecedor", "Enviado", "Entregue"].map((status) => `<option ${order.fulfillmentStatus === status ? "selected" : ""}>${status}</option>`).join("")}
+          </select>
+        </div>
+        <button onclick="copySupplierOrder(${index})" type="button">Copiar pedido para fornecedor</button>
+      </div>
+    `;
+  }).join("") : "<p>Nenhum pedido ainda.</p>";
+}
+
+function renderOrderItem(item) {
+  const supplier = item.supplier ? ` | Fornecedor: ${escapeHtml(item.supplier)}` : "";
+  const delivery = item.deliveryTime ? ` | Prazo: ${escapeHtml(item.deliveryTime)}` : "";
+  const sku = item.supplierSku ? ` | SKU: ${escapeHtml(item.supplierSku)}` : "";
+  const link = item.supplierUrl ? ` | <a href="${escapeHtml(item.supplierUrl)}" target="_blank" rel="noopener">comprar</a>` : "";
+  const cost = Number(item.cost || 0) > 0 ? ` | Custo: ${brl(Number(item.cost || 0) * Number(item.qty || 1))}` : "";
+  return `<li>${item.qty}x ${escapeHtml(item.name)}${supplier}${delivery}${sku}${cost}${link}</li>`;
+}
+
+function calculateOrderSupplierCost(order) {
+  return (order.items || []).reduce((sum, item) => sum + Number(item.cost || 0) * Number(item.qty || 1), 0);
+}
+
+function changeOrderFulfillmentStatus(index, status) { app.orders[index].fulfillmentStatus = status; saveApp(app); renderOrders(); }
+
+async function copySupplierOrder(index) {
+  const order = app.orders[index];
+  const text = [
+    `Pedido fornecedor JohnVisionSeg #${String(order.id).slice(-6)}`,
+    `Cliente: ${order.name}`,
+    `Telefone: ${order.phone || ""}`,
+    `Endereco: ${order.address || ""}`,
+    "",
+    "Itens:",
+    ...(order.items || []).map((item) => `${item.qty}x ${item.name}${item.supplierSku ? ` | SKU ${item.supplierSku}` : ""}${item.supplierUrl ? ` | ${item.supplierUrl}` : ""}`)
+  ].join("\n");
+  try {
+    await navigator.clipboard.writeText(text);
+    alert("Pedido copiado. Cole no fornecedor para comprar/enviar.");
+  } catch {
+    window.prompt("Copie o pedido para o fornecedor:", text);
+  }
+}
+
 function renderQuotes() {
   document.getElementById("quotesList").innerHTML = app.quotes.length ? app.quotes.map((quote, index) => `<div class="admin-card"><span class="status">${escapeHtml(quote.status)}</span><h3>${escapeHtml(quote.name)}</h3><p>${escapeHtml(quote.phone)}</p><p>${escapeHtml(quote.service)}</p><p>${escapeHtml(quote.message || "")}</p><small>${escapeHtml(quote.date)}</small><br><select onchange="changeQuoteStatus(${index}, this.value)"><option ${quote.status === "Novo" ? "selected" : ""}>Novo</option><option ${quote.status === "Em atendimento" ? "selected" : ""}>Em atendimento</option><option ${quote.status === "Finalizado" ? "selected" : ""}>Finalizado</option><option ${quote.status === "Cancelado" ? "selected" : ""}>Cancelado</option></select></div>`).join("") : "<p>Nenhum orçamento ainda.</p>";
 }
@@ -1195,6 +1307,12 @@ function confirmLinkImport() {
     mercadoLivreUrl: source.includes('mercadolivre') || source.includes('mlstatic') ? source : '',
     mercadoLivreId:  extractMercadoLivreId(source),
     sourceUrl:       source,
+    fulfillment:     source ? 'dropshipping' : 'local',
+    supplier:        source ? new URL(source).hostname.replace(/^www\./, '') : '',
+    deliveryTime:    source ? 'Prazo informado apos confirmacao do fornecedor' : 'Pronta entrega',
+    cost:            0,
+    supplierUrl:     source,
+    supplierSku:     extractMercadoLivreId(source) || '',
     specs,
     desc:            desc || generated.desc
   };

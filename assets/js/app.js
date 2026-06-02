@@ -88,27 +88,29 @@ function renderProducts() {
       ${renderProductMedia(product)}
       <div class="product-topline">
         <span class="product-category">${escapeHtml(product.category)}</span>
-        <span class="stock ${product.stock <= 0 ? "out" : product.stock <= product.minStock ? "low" : ""}">
-          ${product.stock <= 0 ? "Esgotado" : "Pronta entrega"}
+        <span class="stock ${getStockClass(product)}">
+          ${escapeHtml(getAvailabilityLabel(product))}
         </span>
       </div>
       <div class="product-badges">
         <span>Compra assistida</span>
         <span>Suporte tecnico</span>
+        ${isDropshipProduct(product) ? "<span>Envio do fornecedor</span>" : ""}
       </div>
       <h3>${escapeHtml(product.name)}</h3>
       <p>${escapeHtml(product.desc)}</p>
       ${renderProductSpecs(product)}
+      ${renderDeliveryInfo(product)}
       <div class="product-sale-panel">
         <div>
           <span class="price-label">Valor de venda</span>
           <div class="price">${brl(product.price)}</div>
         </div>
-        <span class="stock-count">${product.stock <= 0 ? "Sem estoque" : `${product.stock} un.`}</span>
+        <span class="stock-count">${escapeHtml(getStockCountLabel(product))}</span>
       </div>
       <div class="product-actions">
-        <button class="btn primary sale-button" ${product.stock <= 0 ? "disabled" : ""} onclick="buyNow(${Number(product.id)})">Comprar agora</button>
-        <button class="btn secondary cart-mini-button" ${product.stock <= 0 ? "disabled" : ""} onclick="addToCart(${Number(product.id)})">Adicionar</button>
+        <button class="btn primary sale-button" ${!isProductAvailable(product) ? "disabled" : ""} onclick="buyNow(${Number(product.id)})">Comprar agora</button>
+        <button class="btn secondary cart-mini-button" ${!isProductAvailable(product) ? "disabled" : ""} onclick="addToCart(${Number(product.id)})">Adicionar</button>
         ${renderMercadoLivreButton(product)}
       </div>
     </article>
@@ -181,6 +183,44 @@ function renderProductSpecs(product) {
   return `<ul class="product-specs">${specs.slice(0, 4).map((spec) => `<li>${escapeHtml(spec)}</li>`).join("")}</ul>`;
 }
 
+function getFulfillmentMode(product) {
+  return ["dropshipping", "preorder"].includes(product.fulfillment) ? product.fulfillment : "local";
+}
+
+function isDropshipProduct(product) {
+  return getFulfillmentMode(product) === "dropshipping" || getFulfillmentMode(product) === "preorder";
+}
+
+function isProductAvailable(product) {
+  return Number(product.stock || 0) > 0 || isDropshipProduct(product);
+}
+
+function getAvailabilityLabel(product) {
+  if (getFulfillmentMode(product) === "dropshipping") return "Envio do fornecedor";
+  if (getFulfillmentMode(product) === "preorder") return "Sob encomenda";
+  return Number(product.stock || 0) <= 0 ? "Esgotado" : "Pronta entrega";
+}
+
+function getStockClass(product) {
+  if (isDropshipProduct(product)) return "dropship";
+  return product.stock <= 0 ? "out" : product.stock <= product.minStock ? "low" : "";
+}
+
+function getStockCountLabel(product) {
+  if (getFulfillmentMode(product) === "dropshipping") return product.deliveryTime || "Prazo sob consulta";
+  if (getFulfillmentMode(product) === "preorder") return product.deliveryTime || "Sob encomenda";
+  return product.stock <= 0 ? "Sem estoque" : `${product.stock} un.`;
+}
+
+function renderDeliveryInfo(product) {
+  if (!isDropshipProduct(product) && !product.deliveryTime) return "";
+  const delivery = product.deliveryTime || "Prazo confirmado no atendimento";
+  const text = isDropshipProduct(product)
+    ? `Entrega: ${delivery}. Pedido enviado direto pelo fornecedor parceiro.`
+    : `Entrega: ${delivery}.`;
+  return `<div class="delivery-info">${escapeHtml(text)}</div>`;
+}
+
 function renderMercadoLivreButton(product) {
   if (!product.mercadoLivreUrl) return "";
   return `<a class="btn ml-btn" href="${escapeHtml(withMercadoLivreAffiliate(product.mercadoLivreUrl))}" target="_blank" rel="noopener">Ver no Mercado Livre</a>`;
@@ -200,12 +240,12 @@ function withMercadoLivreAffiliate(url) {
 
 function addToCart(id) {
   const product = app.products.find((item) => item.id === id);
-  if (!product || product.stock <= 0) return;
+  if (!product || !isProductAvailable(product)) return;
   const item = cart.find((cartItem) => cartItem.id === id);
   if (item) {
-    if (item.qty < product.stock) item.qty += 1;
+    if (isDropshipProduct(product) || item.qty < product.stock) item.qty += 1;
   } else {
-    cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
+    cart.push({ id: product.id, name: product.name, price: product.price, qty: 1, fulfillment: getFulfillmentMode(product), supplier: product.supplier || "", deliveryTime: product.deliveryTime || "", cost: Number(product.cost || 0), supplierUrl: product.supplierUrl || product.sourceUrl || "", supplierSku: product.supplierSku || "" });
   }
   renderCart();
   openCart();
@@ -213,14 +253,15 @@ function addToCart(id) {
 
 function buyNow(id) {
   const product = app.products.find((item) => item.id === id);
-  if (!product || product.stock <= 0) return;
+  if (!product || !isProductAvailable(product)) return;
   const message = [
     "Ola! Vi este produto na loja online John@VisionSeg e quero comprar.",
     "",
     `Produto: ${product.name}`,
     `Categoria: ${product.category}`,
     `Valor: ${brl(product.price)}`,
-    `Estoque informado: ${product.stock || 0} un.`,
+    `Disponibilidade: ${getAvailabilityLabel(product)}`,
+    product.deliveryTime ? `Prazo: ${product.deliveryTime}` : "",
     "",
     "Pode confirmar disponibilidade, formas de pagamento, entrega/retirada e se esse modelo atende meu ambiente?"
   ].join("\n");
@@ -240,6 +281,7 @@ function renderCart() {
       <div>
         <strong>${escapeHtml(item.name)}</strong><br>
         ${item.qty} x ${brl(item.price)}
+        ${item.deliveryTime ? `<small>${escapeHtml(item.deliveryTime)}</small>` : ""}
       </div>
       <div class="qty-actions">
         <button type="button" onclick="changeQty(${Number(item.id)}, -1)" aria-label="Diminuir quantidade">-</button>
@@ -317,7 +359,7 @@ function changeQty(id, delta) {
   if (!item || !product) return;
   item.qty += delta;
   if (item.qty <= 0) cart = cart.filter((cartItem) => cartItem.id !== id);
-  if (item.qty > product.stock) item.qty = product.stock;
+  if (!isDropshipProduct(product) && item.qty > product.stock) item.qty = product.stock;
   renderCart();
 }
 
@@ -339,12 +381,25 @@ async function checkout() {
   const phone = document.getElementById("customerPhone").value.trim();
   const address = document.getElementById("customerAddress").value.trim();
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const order = { id: Date.now(), date: new Date().toLocaleString("pt-BR"), name, phone, address, total, status: "Novo", items: cart };
+  const orderItems = cart.map((item) => {
+    const product = app.products.find((productItem) => productItem.id === item.id) || {};
+    return {
+      ...item,
+      fulfillment: getFulfillmentMode(product),
+      supplier: product.supplier || item.supplier || "",
+      deliveryTime: product.deliveryTime || item.deliveryTime || "",
+      cost: Number(product.cost || item.cost || 0),
+      supplierUrl: product.supplierUrl || product.sourceUrl || item.supplierUrl || "",
+      supplierSku: product.supplierSku || item.supplierSku || ""
+    };
+  });
+  const supplierCost = orderItems.reduce((sum, item) => sum + Number(item.cost || 0) * Number(item.qty || 1), 0);
+  const order = { id: Date.now(), date: new Date().toLocaleString("pt-BR"), name, phone, address, total, supplierCost, profit: total - supplierCost, status: "Novo", fulfillmentStatus: "Aguardando pagamento", items: orderItems };
   app.orders.unshift(order);
   app.customers.unshift({ name, phone, address, date: order.date, type: "Compra" });
   cart.forEach((item) => {
     const product = app.products.find((productItem) => productItem.id === item.id);
-    if (product) product.stock = Math.max(0, product.stock - item.qty);
+    if (product && !isDropshipProduct(product)) product.stock = Math.max(0, product.stock - item.qty);
   });
   saveApp(app);
   const message = [
@@ -355,7 +410,7 @@ async function checkout() {
     `Endereco/Obs: ${address}`,
     "",
     "Itens:",
-    ...cart.map((item) => `- ${item.qty}x ${item.name} = ${brl(item.price * item.qty)}`),
+    ...orderItems.map((item) => `- ${item.qty}x ${item.name} = ${brl(item.price * item.qty)}${item.deliveryTime ? ` | Prazo: ${item.deliveryTime}` : ""}`),
     "",
     `Total: ${brl(total)}`,
     app.settings.pixKey ? `Pix: ${app.settings.pixKey}` : "",

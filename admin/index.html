@@ -132,6 +132,20 @@
               <input id="quickProductSource" placeholder="Link de compra / origem">
               <input id="quickProductMinStock" type="number" placeholder="Estoque minimo">
             </div>
+            <div class="admin-inline">
+              <select id="quickProductFulfillment">
+                <option value="local">Produto proprio / pronta entrega</option>
+                <option value="dropshipping">Dropshipping / envio do fornecedor</option>
+                <option value="preorder">Sob encomenda</option>
+              </select>
+              <input id="quickProductSupplier" placeholder="Fornecedor">
+              <input id="quickProductDelivery" placeholder="Prazo de entrega ex: 7 a 15 dias uteis">
+            </div>
+            <div class="admin-inline">
+              <input id="quickProductCost" type="number" step="0.01" placeholder="Custo no fornecedor">
+              <input id="quickProductSupplierUrl" placeholder="Link do fornecedor">
+              <input id="quickProductSku" placeholder="SKU/codigo do fornecedor">
+            </div>
             <textarea id="quickProductDesc" placeholder="Descricao automatica"></textarea>
             <textarea id="quickProductSpecs" placeholder="Especificacoes automaticas, uma por linha"></textarea>
             <div class="quick-product-actions">
