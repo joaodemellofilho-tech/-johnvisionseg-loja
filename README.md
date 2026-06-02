@@ -25,3 +25,24 @@ Loja online estatica para venda de cameras de seguranca, CFTV, alarmes e control
 ## Observacao
 
 Depois de publicar, atualize links do WhatsApp, Pix e pagamento em `Painel > Site`.
+
+## Mercado Pago API
+
+O site tem dois fluxos via Firebase Functions:
+- Checkout Pro: cria uma preferencia e redireciona o cliente para o Mercado Pago.
+- Cartao via Card Payment Brick: o SDK tokeniza o cartao no frontend e a Function cria o pagamento em `/v1/payments`.
+
+O Access Token do Mercado Pago deve ficar somente no backend, nunca no HTML ou JavaScript publico. A Public Key pode ficar no frontend.
+
+1. No Mercado Pago Developers, crie uma aplicacao e copie o Access Token.
+2. Configure o token na Function:
+   `firebase functions:config:set mercadopago.token="SEU_ACCESS_TOKEN"`
+3. Em `assets/js/firebase-config.js`, preencha `JOHNVISIONSEG_MERCADO_PAGO.publicKey` com sua Public Key.
+4. Publique Functions, Hosting e regras do Firestore:
+   `firebase deploy --only functions,hosting,firestore:rules`
+5. Confirme que `assets/js/firebase-config.js` aponta para:
+   `https://southamerica-east1-johnvisionseg-site.cloudfunctions.net`
+
+Quando o cliente clicar em pagar, o site chama `createCheckout`, a Function cria a preferencia em `https://api.mercadopago.com/checkout/preferences` e retorna o link de pagamento.
+
+Quando o cliente clicar em "Pagar com cartao", o SDK `https://sdk.mercadopago.com/js/v2` renderiza o Card Payment Brick, gera o token do cartao e envia para `processCardPayment`. A Function chama `https://api.mercadopago.com/v1/payments` com `X-Idempotency-Key`.

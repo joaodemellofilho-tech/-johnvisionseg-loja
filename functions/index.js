@@ -40,6 +40,9 @@ function cleanOrder(raw) {
   const safeItems = items.slice(0, 30).map((item) => ({
     id: String(item.id || ""),
     name: String(item.name || "Produto").slice(0, 180),
+    description: String(item.description || item.desc || "").slice(0, 260),
+    category: String(item.category || "").slice(0, 80),
+    imageUrl: String(item.imageUrl || item.picture_url || "").slice(0, 500),
     price: Number(item.price || 0),
     qty: Math.max(1, Number(item.qty || 1)),
     fulfillment: String(item.fulfillment || "local"),
@@ -70,6 +73,121 @@ function cleanOrder(raw) {
     paymentProvider: "mercadopago",
     paymentStatus: "pending",
     items: safeItems
+  };
+}
+
+function splitPhone(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (!digits) return null;
+  const withoutCountry = digits.startsWith("55") && digits.length > 10 ? digits.slice(2) : digits;
+  if (withoutCountry.length <= 2) return { number: withoutCountry };
+  return {
+    area_code: withoutCountry.slice(0, 2),
+    number: Number(withoutCountry.slice(2))
+  };
+}
+
+function buildPreferencePayload(req, order) {
+  const siteUrl = configValue("PUBLIC_SITE_URL", "site.url") || "https://joaodemellofilho-tech.github.io/-johnvisionseg-loja/";
+  const preference = {
+    external_reference: String(order.id),
+    notification_url: buildNotificationUrl(req),
+    items: order.items.map((item) => ({
+      id: String(item.id),
+      title: item.name,
+      description: item.description || undefined,
+      picture_url: item.imageUrl && /^https?:\/\//i.test(item.imageUrl) ? item.imageUrl : undefined,
+      category_id: item.category ? "electronics" : undefined,
+      quantity: item.qty,
+      currency_id: "BRL",
+      unit_price: Number(item.price)
+    })),
+    payer: {
+      name: order.name,
+      email: order.email || undefined,
+      phone: splitPhone(order.phone) || undefined
+    },
+    back_urls: {
+      success: `${siteUrl}?pedido=${encodeURIComponent(order.id)}&pagamento=aprovado`,
+      pending: `${siteUrl}?pedido=${encodeURIComponent(order.id)}&pagamento=pendente`,
+      failure: `${siteUrl}?pedido=${encodeURIComponent(order.id)}&pagamento=falhou`
+    },
+    auto_return: "approved",
+    metadata: {
+      order_id: String(order.id),
+      source: "johnvisionseg"
+    }
+  };
+
+  const maxInstallments = Number(configValue("MERCADO_PAGO_INSTALLMENTS", "mercadopago.installments"));
+  if (maxInstallments > 0) {
+    preference.payment_methods = {
+      installments: Math.min(maxInstallments, 24)
+    };
+  }
+
+  return preference;
+}
+
+function cleanPaymentForm(raw) {
+  const form = raw.payment || raw.formData || raw;
+  const payer = form.payer || {};
+  const identification = payer.identification || form.identification || {};
+  const token = String(form.token || "").trim();
+  const paymentMethodId = String(form.payment_method_id || "").trim();
+  const installments = Number(form.installments || 1);
+  const issuerId = form.issuer_id || form.issuer || undefined;
+  const email = String(payer.email || form.email || "").trim();
+
+  if (!token) throw new Error("Token do cartao ausente.");
+  if (!paymentMethodId) throw new Error("Metodo de pagamento ausente.");
+  if (!email) throw new Error("E-mail do pagador ausente.");
+
+  return {
+    token,
+    paymentMethodId,
+    installments: Math.max(1, installments),
+    issuerId,
+    payer: {
+      email,
+      identification: identification.type && identification.number ? {
+        type: String(identification.type),
+        number: String(identification.number)
+      } : undefined
+    }
+  };
+}
+
+function buildCardPaymentPayload(req, order, paymentForm) {
+  return {
+    transaction_amount: Number(order.total.toFixed(2)),
+    token: paymentForm.token,
+    description: `Pedido JohnVisionSeg #${String(order.id).slice(-6)}`,
+    installments: paymentForm.installments,
+    payment_method_id: paymentForm.paymentMethodId,
+    issuer_id: paymentForm.issuerId || undefined,
+    external_reference: String(order.id),
+    notification_url: buildNotificationUrl(req),
+    metadata: {
+      order_id: String(order.id),
+      source: "johnvisionseg_card_brick"
+    },
+    additional_info: {
+      items: order.items.map((item) => ({
+        id: String(item.id),
+        title: item.name,
+        description: item.description || undefined,
+        picture_url: item.imageUrl && /^https?:\/\//i.test(item.imageUrl) ? item.imageUrl : undefined,
+        category_id: item.category ? "electronics" : undefined,
+        quantity: item.qty,
+        unit_price: Number(item.price)
+      })),
+      payer: {
+        first_name: order.name,
+        phone: splitPhone(order.phone) || undefined
+      }
+    },
+    payer: paymentForm.payer
   };
 }
 
@@ -136,35 +254,9 @@ exports.createCheckout = onRequest({ region: REGION }, async (req, res) => {
     const order = cleanOrder(req.body || {});
     await upsertOrder(order);
 
-    const siteUrl = configValue("PUBLIC_SITE_URL", "site.url") || "https://joaodemellofilho-tech.github.io/-johnvisionseg-loja/";
     const preference = await mercadoPago("/checkout/preferences", {
       method: "POST",
-      body: JSON.stringify({
-        external_reference: String(order.id),
-        notification_url: buildNotificationUrl(req),
-        items: order.items.map((item) => ({
-          id: String(item.id),
-          title: item.name,
-          quantity: item.qty,
-          unit_price: Number(item.price),
-          currency_id: "BRL"
-        })),
-        payer: {
-          name: order.name,
-          email: order.email || undefined,
-          phone: order.phone ? { number: order.phone } : undefined
-        },
-        back_urls: {
-          success: `${siteUrl}?pedido=${encodeURIComponent(order.id)}&pagamento=aprovado`,
-          pending: `${siteUrl}?pedido=${encodeURIComponent(order.id)}&pagamento=pendente`,
-          failure: `${siteUrl}?pedido=${encodeURIComponent(order.id)}&pagamento=falhou`
-        },
-        auto_return: "approved",
-        metadata: {
-          order_id: String(order.id),
-          source: "johnvisionseg"
-        }
-      })
+      body: JSON.stringify(buildPreferencePayload(req, order))
     });
 
     await patchOrder(order.id, {
@@ -181,6 +273,54 @@ exports.createCheckout = onRequest({ region: REGION }, async (req, res) => {
   } catch (error) {
     logger.error("Falha ao criar checkout", error);
     return res.status(400).json({ error: error.message || "Falha ao criar checkout." });
+  }
+});
+
+exports.processCardPayment = onRequest({ region: REGION }, async (req, res) => {
+  cors(res);
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "POST") return res.status(405).json({ error: "Metodo nao permitido." });
+
+  try {
+    const order = cleanOrder(req.body?.order || req.body || {});
+    const paymentForm = cleanPaymentForm(req.body || {});
+    await upsertOrder(order);
+
+    const idempotencyKey = String(req.body?.idempotencyKey || `${order.id}-${Date.now()}`);
+    const payment = await mercadoPago("/v1/payments", {
+      method: "POST",
+      headers: {
+        "X-Idempotency-Key": idempotencyKey
+      },
+      body: JSON.stringify(buildCardPaymentPayload(req, order, paymentForm))
+    });
+
+    const approved = payment.status === "approved";
+    const updatedOrder = await patchOrder(order.id, {
+      paymentId: String(payment.id || ""),
+      paymentProvider: "mercadopago",
+      paymentStatus: payment.status || "unknown",
+      status: approved ? "Pago" : "Aguardando pagamento",
+      fulfillmentStatus: approved ? "Comprar no fornecedor" : "Aguardando pagamento",
+      paidAt: approved ? new Date().toISOString() : null,
+      paymentDetail: {
+        status: payment.status || "",
+        statusDetail: payment.status_detail || "",
+        method: payment.payment_method_id || paymentForm.paymentMethodId,
+        amount: payment.transaction_amount || order.total
+      }
+    });
+
+    if (approved && updatedOrder) await sendSupplierOrder(updatedOrder);
+    return res.json({
+      orderId: order.id,
+      paymentId: payment.id,
+      status: payment.status,
+      statusDetail: payment.status_detail
+    });
+  } catch (error) {
+    logger.error("Falha ao processar pagamento com cartao", error);
+    return res.status(400).json({ error: error.message || "Falha ao processar pagamento." });
   }
 });
 

@@ -38,7 +38,7 @@
 <body class="storefront">
 <a class="skip-link" href="#produtos">Pular para produtos</a>
 
-<canvas id="particleCanvas" aria-hidden="true" style="display:none"></canvas>
+<canvas id="particleCanvas" aria-hidden="true"></canvas>
 
 <header class="topbar store-topbar" style="position:relative">
   <a class="brand" href="#produtos" aria-label="John@VisionSeg Loja">
@@ -48,12 +48,49 @@
       <small>seguranca eletronica profissional</small>
     </span>
   </a>
+  <form class="top-search" role="search" aria-label="Buscar produtos no catalogo">
+    <input id="headerSearchInput" type="search" placeholder="Buscar cameras, kits CFTV, alarmes..." aria-label="Buscar no topo">
+    <button type="submit" aria-label="Buscar">Buscar</button>
+  </form>
   <nav class="desktop-nav" aria-label="Navegacao principal">
-    <a href="#produtos">Produtos</a>
-    <a href="#solucoes">Solucoes</a>
-    <a href="#como-comprar">Como comprar</a>
+    <div class="nav-dropdown">
+      <a href="#produtos" class="dropdown-trigger">Produtos <span class="arrow">▼</span></a>
+      <div class="dropdown-menu">
+        <a href="#produtos" onclick="setCatalogCategory('Câmeras PTZ'); return false;">Câmeras PTZ</a>
+        <a href="#produtos" onclick="setCatalogCategory('Kits'); return false;">Kits CFTV</a>
+        <a href="#produtos" onclick="setCatalogCategory('Gravadores'); return false;">Gravadores / DVR</a>
+        <a href="#produtos" onclick="setCatalogCategory('Alarmes'); return false;">Alarmes & Cerca</a>
+        <a href="#produtos" onclick="setCatalogCategory('Acesso'); return false;">Controle de Acesso</a>
+      </div>
+    </div>
+    
+    <div class="nav-dropdown">
+      <a href="#solucoes" class="dropdown-trigger">Soluções <span class="arrow">▼</span></a>
+      <div class="dropdown-menu">
+        <a href="#solucoes" onclick="scrollToSolution(0); return false;">Casa & Apartamento</a>
+        <a href="#solucoes" onclick="scrollToSolution(1); return false;">Loja & Comércio</a>
+        <a href="#solucoes" onclick="scrollToSolution(2); return false;">Área Externa / Rural</a>
+        <a href="#solucoes" onclick="scrollToSolution(3); return false;">Controle de Acesso</a>
+      </div>
+    </div>
+    
+    <div class="nav-dropdown">
+      <a href="#simulador-cftv" class="dropdown-trigger">Módulos Pro <span class="arrow">▼</span></a>
+      <div class="dropdown-menu">
+        <a href="#simulador-cftv">Simulador de CFTV</a>
+        <a href="#assistente-projeto">Assistente de Projetos</a>
+        <a href="#como-comprar">Como Comprar</a>
+      </div>
+    </div>
+    
     <a href="#contato">Atendimento</a>
     <a href="admin/index.html">Painel</a>
+  </nav>
+  <nav class="simple-nav" aria-label="Navegacao principal simplificada">
+    <a href="#produtos">Produtos</a>
+    <a href="#sobre">Sobre</a>
+    <a href="#contato">Suporte</a>
+    <a href="admin/index.html">Painel ADM</a>
   </nav>
   <!-- System status indicator -->
   <div style="display:flex;align-items:center;gap:8px;margin-right:8px;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#7fafc8;display:none" class="sys-status desktop-nav">
@@ -72,7 +109,7 @@
 
 <style>
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.sys-status{display:flex!important}
+.sys-status{display:none!important}
 @media(max-width:980px){.sys-status{display:none!important}}
 </style>
 
@@ -81,7 +118,7 @@
   <a href="#solucoes">Solucoes</a>
   <a href="#contato">Contato</a>
   <a id="mobileAuthLink" href="#" onclick="openAuthModal();return false;">Entrar</a>
-  <a href="#produtos">Buscar</a>
+  <a href="admin/index.html">ADM</a>
 </nav>
 
 <main id="conteudo" style="position:relative;z-index:2">
@@ -138,19 +175,412 @@
     </div>
   </section>
 
+  <!-- ════ CFTV LIVE SIMULATOR SECTION ════ -->
+  <section id="simulador-cftv" class="section simulator-section">
+    <div class="section-heading">
+      <span class="eyebrow">Simulação Pro</span>
+      <h2>Simulador de Câmeras Inteligentes (CFTV Pro)</h2>
+      <p>Experimente em tempo real os recursos de alta tecnologia das nossas câmeras. Ajuste as opções ao lado para ver o efeito na imagem.</p>
+    </div>
+    
+    <div class="simulator-container">
+      <!-- Simulated Camera Viewport (Left) -->
+      <div class="camera-viewport-wrap">
+        <div class="camera-viewport" id="cameraViewport">
+          <!-- Live Scanlines / Noise Overlay -->
+          <div class="camera-noise" id="cameraNoise"></div>
+          <div class="camera-scanline"></div>
+          
+          <!-- Camera Feed Background scene -->
+          <div class="camera-feed-bg" id="cameraFeedBg">
+            <div class="sim-bg-scene" id="simScene">
+              <!-- Moving target: Human -->
+              <div class="sim-target human-target" id="simHuman">
+                <svg viewBox="0 0 100 100" width="40" height="80">
+                  <circle cx="50" cy="20" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
+                  <line x1="50" y1="30" x2="50" y2="70" stroke="currentColor" stroke-width="3"/>
+                  <line x1="50" y1="40" x2="30" y2="55" stroke="currentColor" stroke-width="3"/>
+                  <line x1="50" y1="40" x2="70" y2="55" stroke="currentColor" stroke-width="3"/>
+                  <line x1="50" y1="70" x2="35" y2="95" stroke="currentColor" stroke-width="3"/>
+                  <line x1="50" y1="70" x2="65" y2="95" stroke="currentColor" stroke-width="3"/>
+                </svg>
+                <div class="sim-ia-box" id="simHumanBox">
+                  <span class="sim-ia-label">HUMANO DETECTADO [98.4%]</span>
+                </div>
+              </div>
+              
+              <!-- Moving target: Vehicle -->
+              <div class="sim-target vehicle-target" id="simVehicle">
+                <svg viewBox="0 0 120 80" width="80" height="50">
+                  <rect x="10" y="30" width="100" height="30" rx="5" fill="none" stroke="currentColor" stroke-width="3"/>
+                  <path d="M25 30 L40 10 L80 10 L95 30 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+                  <circle cx="35" cy="60" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
+                  <circle cx="85" cy="60" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
+                </svg>
+                <div class="sim-ia-box" id="simVehicleBox">
+                  <span class="sim-ia-label">VEÍCULO DETECTADO [95.1%]</span>
+                </div>
+              </div>
+
+              <!-- Moving target: Drone (Forced Intrusion) -->
+              <div class="sim-target drone-target" id="simDrone" style="display:none;">
+                <svg viewBox="0 0 100 100" width="50" height="50">
+                  <path d="M20 50 L80 50 M50 20 L50 80" stroke="currentColor" stroke-width="3"/>
+                  <circle cx="20" cy="50" r="8" fill="none" stroke="currentColor" stroke-width="3"/>
+                  <circle cx="80" cy="50" r="8" fill="none" stroke="currentColor" stroke-width="3"/>
+                  <circle cx="50" cy="20" r="8" fill="none" stroke="currentColor" stroke-width="3"/>
+                  <circle cx="50" cy="80" r="8" fill="none" stroke="currentColor" stroke-width="3"/>
+                  <rect x="40" y="40" width="20" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="4"/>
+                  <circle cx="50" cy="50" r="3" fill="red"/>
+                </svg>
+                <div class="sim-ia-box" id="simDroneBox">
+                  <span class="sim-ia-label" style="background:#ff2d55;color:#fff;">🚨 DRONE INTRUSOR [99.7%]</span>
+                </div>
+              </div>
+
+              <!-- Static background elements like street, gate, trees -->
+              <div class="sim-scenery-road"></div>
+              <div class="sim-scenery-house"></div>
+            </div>
+          </div>
+
+          <!-- Virtual Tripwire Line -->
+          <div class="camera-tripwire" id="cameraTripwire">
+            <span class="tripwire-text">VIRTUAL TRIPWIRE — CERCA INTELIGENTE ATIVA</span>
+          </div>
+
+          <!-- Interactive Rain Overlay -->
+          <div class="camera-rain" id="cameraRain"></div>
+          
+          <!-- Camera Interface Overlays -->
+          <div class="camera-hud">
+            <div class="hud-top">
+              <div class="hud-live-indicator">
+                <span class="live-dot" id="liveDot"></span>
+                <span class="live-text" id="liveText">GRAVANDO</span>
+              </div>
+              <div class="hud-cam-name" id="hudCamName">CAM_01_FACHADA</div>
+              <div class="hud-cam-resolution" id="hudCamRes">4K UHD</div>
+            </div>
+            
+            <div class="hud-center-crosshair">
+              <div class="crosshair-ch"></div>
+            </div>
+
+            <div class="hud-bottom">
+              <div class="hud-timestamp" id="hudTimestamp">02/06/2026 13:25:21</div>
+              <div class="hud-stats">
+                <span id="hudFps">60 FPS</span>
+                <span>|</span>
+                <span id="hudBandwidth">4.2 Mbps</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strobe Alarm Flash Overlay -->
+          <div class="camera-alarm-flash" id="cameraAlarmFlash">
+            <div class="alarm-banner">🚨 INVASÃO DETECTADA: ATIVANDO DISUASÃO ATIVA! 🚨</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Control Panel (Right) -->
+      <div class="simulator-controls">
+        <h3 class="control-title">// PAINEL DE CONTROLE CFTV</h3>
+        <p class="control-subtitle">Ajuste os parâmetros para testar a performance do equipamento:</p>
+        
+        <!-- Controls Groups -->
+        <div class="control-group">
+          <label class="group-label">Resolução e Nitidez</label>
+          <div class="control-options-grid">
+            <button type="button" class="opt-btn active" id="btnRes4k" onclick="setSimResolution('4k')">
+              <strong>4K Ultra HD</strong>
+              <small>Nitidez excepcional (8 Megapixels)</small>
+            </button>
+            <button type="button" class="opt-btn" id="btnRes6k" onclick="setSimResolution('6k')">
+              <strong>6K Super HD</strong>
+              <small>Máximo alcance de detalhes</small>
+            </button>
+            <button type="button" class="opt-btn" id="btnRes1080p" onclick="setSimResolution('1080p')">
+              <strong>1080p Full HD</strong>
+              <small>Resolução padrão de mercado</small>
+            </button>
+          </div>
+        </div>
+        
+        <div class="control-group">
+          <label class="group-label">Modo de Visão Noturna</label>
+          <div class="control-options-grid">
+            <button type="button" class="opt-btn active" id="btnVisionInfra" onclick="setSimVision('infrared')">
+              <strong>Infravermelho (P&B)</strong>
+              <small>Visão noturna invisível tradicional</small>
+            </button>
+            <button type="button" class="opt-btn" id="btnVisionColor" onclick="setSimVision('color')">
+              <strong>Colorida (Luz Dupla)</strong>
+              <small>LEDs acendem para imagem colorida</small>
+            </button>
+            <button type="button" class="opt-btn" id="btnVisionStrobe" onclick="setSimVision('smart-alert')">
+              <strong>Strobo de Alarme</strong>
+              <small>Luz pisca ao detectar movimento</small>
+            </button>
+          </div>
+        </div>
+        
+        <div class="control-group">
+          <label class="group-label">Recursos de IA (Inteligência Artificial)</label>
+          <div class="control-options-grid">
+            <button type="button" class="opt-btn active" id="btnIAHuman" onclick="setSimIA('human')">
+              <strong>Detecção Humana</strong>
+              <small>Reconhece e segue pessoas</small>
+            </button>
+            <button type="button" class="opt-btn" id="btnIAVehicle" onclick="setSimIA('vehicle')">
+              <strong>Rastreamento de Veículos</strong>
+              <small>Cria alertas sobre automóveis</small>
+            </button>
+            <button type="button" class="opt-btn" id="btnIAOff" onclick="setSimIA('off')">
+              <strong>IA Desativada</strong>
+              <small>Apenas gravação contínua básica</small>
+            </button>
+          </div>
+        </div>
+        
+        <div class="control-group">
+          <label class="group-label">Zoom Digital Inteligente</label>
+          <div class="control-options-grid zoom-options">
+            <button type="button" class="opt-btn active" id="btnZoom1" onclick="setSimZoom(1)"><strong>1x</strong><small>Wide</small></button>
+            <button type="button" class="opt-btn" id="btnZoom4" onclick="setSimZoom(4)"><strong>4x</strong><small>Médio</small></button>
+            <button type="button" class="opt-btn" id="btnZoom8" onclick="setSimZoom(8)"><strong>8x</strong><small>Máximo</small></button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="group-label">Simulação de Clima e Eventos</label>
+          <div class="control-options-grid" style="grid-template-columns: 1.25fr 1fr 1fr;">
+            <button type="button" class="opt-btn" id="btnIntrusion" onclick="triggerIntrusionAlert()" style="border-color: var(--danger); background: rgba(255, 45, 85, 0.1);">
+              <strong style="color: #ff4d6d;">🚨 Forçar Invasão</strong>
+              <small>Simular Tripwire e Sirene</small>
+            </button>
+            <button type="button" class="opt-btn active" id="btnWeatherClear" onclick="setSimWeather('clear')">
+              <strong>☀️ Céu Limpo</strong>
+              <small>Imagem HD cristalina</small>
+            </button>
+            <button type="button" class="opt-btn" id="btnWeatherRain" onclick="setSimWeather('rain')">
+              <strong> Chover Forte</strong>
+              <small>Simular chuva nas lentes</small>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="produtos" class="section shop-section store-catalog">
     <div class="store-toolbar">
       <div>
         <span class="eyebrow">Catalogo online</span>
-        <h2>Vitrine de cameras e equipamentos</h2>
+        <h2>Destaques da Semana</h2>
         <p>Compare modelos, veja detalhes e compre direto pelo WhatsApp.</p>
       </div>
       <div class="filters" role="search">
         <input id="searchInput" type="search" placeholder="// buscar produto..." aria-label="Buscar produto">
         <select id="categoryFilter" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
+        <select id="sortProducts" aria-label="Ordenar produtos">
+          <option value="featured">Destaques primeiro</option>
+          <option value="name">Nome A-Z</option>
+          <option value="priceAsc">Menor preco</option>
+          <option value="priceDesc">Maior preco</option>
+        </select>
       </div>
     </div>
+    <div class="catalog-summary">
+      <span id="productsCount">0 produtos</span>
+      <span>Use busca, categoria e ordenacao para comparar melhor.</span>
+    </div>
+    <div class="category-strip" id="categoryStrip" aria-label="Categorias do catalogo"></div>
     <div id="productsGrid" class="products-grid"></div>
+  </section>
+
+  <!-- ════ SMART SECURITY PLANNER SECTION ════ -->
+  <section id="assistente-projeto" class="section planner-section">
+    <div class="section-heading">
+      <span class="eyebrow">Projeto Personalizado</span>
+      <h2>Assistente de Segurança Inteligente</h2>
+      <p>Não sabe qual câmera escolher? Responda 4 perguntas rápidas e nosso assistente irá montar o sistema ideal para suas necessidades.</p>
+    </div>
+    
+    <div class="planner-card">
+      <!-- Decorator corners -->
+      <span class="planner-hud-tl"></span>
+      <span class="planner-hud-tr"></span>
+      
+      <!-- Quiz Progress -->
+      <div class="planner-progress">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="plannerProgressFill" style="width: 25%"></div>
+        </div>
+        <div class="progress-steps-text">Passo <span id="currentStepNum">1</span> de 4</div>
+      </div>
+      
+      <!-- Quiz Steps -->
+      <div class="planner-steps" id="plannerSteps">
+        <!-- Step 1 -->
+        <div class="planner-step-panel active" id="plannerStep1">
+          <h3>1. Qual o tipo de imóvel que você deseja monitorar?</h3>
+          <p class="step-desc">A arquitetura física determina o local, vedação e alcance necessários para o equipamento.</p>
+          <div class="quiz-options">
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(1, 'residencia', 'Residência / Apartamento')">
+              <span class="opt-icon">🏠</span>
+              <strong>Casa ou Apartamento</strong>
+              <span>Entrada, quintal, garagem ou cômodos internos do lar.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(1, 'comercio', 'Comércio / Loja')">
+              <span class="opt-icon">🏢</span>
+              <strong>Loja ou Comércio</strong>
+              <span>Área de vendas, caixa, recepção, estoque e calçadas.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(1, 'rural', 'Área Rural / Chácara')">
+              <span class="opt-icon">🌾</span>
+              <strong>Área Rural ou Chácara</strong>
+              <span>Longas distâncias, controle de pasto, porteiras e galpões rurais.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(1, 'empresa', 'Empresa / Condomínio')">
+              <span class="opt-icon">🏭</span>
+              <strong>Empresa ou Condomínio</strong>
+              <span>Controle de acessos de veículos, portaria, corredores e salas.</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="planner-step-panel" id="plannerStep2" style="display:none">
+          <h3>2. Quantos pontos/câmeras você precisa no total?</h3>
+          <p class="step-desc">Isso calcula a capacidade de canais, fontes, cabos e gravadores para o kit.</p>
+          <div class="quiz-options">
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(2, '1cam', 'Apenas 1 câmera')">
+              <span class="opt-icon">📷</span>
+              <strong>1 Câmera Individual</strong>
+              <span>Ideal para vigiar um portão ou apenas a sala da residência.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(2, 'kit4', 'De 2 a 4 câmeras')">
+              <span class="opt-icon">📹📹</span>
+              <strong>2 a 4 Câmeras</strong>
+              <span>Cobre a frente, laterais e os principais acessos do imóvel.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(2, 'kit8', 'De 5 a 8 câmeras')">
+              <span class="opt-icon">📹📹📹</span>
+              <strong>5 a 8 Câmeras</strong>
+              <span>Segurança completa para todas as divisas e ambientes internos/externos.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(2, 'projeto', 'Mais de 8 câmeras')">
+              <span class="opt-icon">🌐</span>
+              <strong>Sistema com mais de 8 Câmeras</strong>
+              <span>Projetos corporativos complexos, industriais ou condominios.</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Step 3 -->
+        <div class="planner-step-panel" id="plannerStep3" style="display:none">
+          <h3>3. Como prefere realizar a gravação das imagens?</h3>
+          <p class="step-desc">Garante que você poderá pesquisar o que aconteceu em dias e horários passados.</p>
+          <div class="quiz-options">
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(3, 'celular', 'Apenas visualização ao vivo')">
+              <span class="opt-icon">📱</span>
+              <strong>Apenas Visualização ao Vivo</strong>
+              <span>Sem gravação física, excelente para checar apenas o momento atual no celular.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(3, 'cartao', 'Gravação em Cartão de Memória')">
+              <span class="opt-icon">💾</span>
+              <strong>Cartão de Memória MicroSD</strong>
+              <span>Prático e econômico. Grava diretamente em cada câmera em loop.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(3, 'dvr', 'Gravação em DVR / NVR Físico')">
+              <span class="opt-icon">📼</span>
+              <strong>Gravador Central (DVR/NVR)</strong>
+              <span>Máxima segurança. Imagens salvas em HD físico interno protegido.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(3, 'nuvem', 'Gravação em Nuvem')">
+              <span class="opt-icon">☁️</span>
+              <strong>Nuvem de Vídeo Segura</strong>
+              <span>Gravação salva de forma criptografada na internet sem risco de furto do aparelho.</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Step 4 -->
+        <div class="planner-step-panel" id="plannerStep4" style="display:none">
+          <h3>4. Qual funcionalidade extra é mais importante para você?</h3>
+          <p class="step-desc">Selecione o recurso tecnológico de segurança de que você não abre mão.</p>
+          <div class="quiz-options">
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(4, 'colorida', 'Visão Noturna Colorida')">
+              <span class="opt-icon">💡</span>
+              <strong>Visão Colorida à Noite</strong>
+              <span>Luz dupla LED permite identificar cores e detalhes em total escuridão.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(4, 'semfio', 'Câmeras Solar Sem Fio')">
+              <span class="opt-icon">☀️</span>
+              <strong>Painel Solar e Sem Fios</strong>
+              <span>Funciona com bateria recarregável por energia solar, sem fios de energia.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(4, 'ia', 'Rastreamento por Inteligência Artificial')">
+              <span class="opt-icon">🤖</span>
+              <strong>Inteligência Artificial PTZ</strong>
+              <span>Seguimento automático horizontal e vertical de humanos.</span>
+            </button>
+            <button type="button" class="quiz-opt" onclick="selectPlannerOption(4, 'alarme', 'Alarme com Strobo e Sirene')">
+              <span class="opt-icon">🚨</span>
+              <strong>Disuasão Sonoro e Luminosa</strong>
+              <span>Dispara alerta vermelho, azul e sirene direto na câmera ao detectar movimento.</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Results Step -->
+        <div class="planner-step-panel results-panel" id="plannerResultStep" style="display:none">
+          <div class="result-header">
+            <span class="badge result-badge">PROJETO RECOMENDADO</span>
+            <h3 id="recommendedKitName">Kit Especial de Segurança</h3>
+            <p id="resultDesc">Com base na análise das suas respostas, este é o projeto ideal elaborado pelo nosso assistente.</p>
+          </div>
+          
+          <div class="result-details-grid">
+            <div class="result-visual-box">
+              <div class="result-cam-preview">
+                <span class="preview-emoji" id="resultPreviewEmoji">🛡️</span>
+                <div class="preview-glow"></div>
+              </div>
+              <div class="result-specs-badge-list" id="resultSpecsBadges">
+                <span>Aplicativo Móvel</span>
+                <span>Configurado e Pronto</span>
+              </div>
+            </div>
+            
+            <div class="result-content-box">
+              <p class="kit-full-description" id="recommendedKitDesc">Este kit foi projetado para oferecer o máximo nível de segurança para o seu tipo de imóvel com a melhor tecnologia disponível.</p>
+              
+              <div class="kit-items-list">
+                <h5>Equipamentos recomendados:</h5>
+                <ul id="recommendedKitItems">
+                  <li>Carregando indicação...</li>
+                </ul>
+              </div>
+
+              <div class="kit-pricing-box">
+                <span class="price-label">Investimento Estimado</span>
+                <div class="kit-price" id="recommendedKitPrice">R$ 0,00</div>
+                <small class="pricing-note">À vista ou em até 10x sem juros no cartão de crédito</small>
+              </div>
+
+              <div class="kit-actions">
+                <button type="button" class="btn primary" onclick="addRecommendedToCart()" id="addRecommendedBtn">Adicionar Recomendação ao Carrinho</button>
+                <button type="button" class="btn secondary" onclick="sendPlannerWhatsapp()" id="whatsappRecommendedBtn">Falar com Consultor Técnico no WhatsApp</button>
+                <button type="button" class="btn text-btn" onclick="restartPlanner()">Refazer Quiz</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="como-comprar" class="section buying-section">
@@ -341,12 +771,26 @@
   <div class="cart-total"><strong>Total:</strong> <span id="cartTotal">R$ 0,00</span></div>
   <div class="payment-box">
     <div class="payment-box-head">
-      <strong>Pagamento</strong>
-      <span>Pix ou link seguro</span>
+      <strong>Formas de pagamento</strong>
+      <span>Escolha como quer finalizar</span>
     </div>
     <div class="payment-methods">
-      <button class="btn secondary full" id="copyPixBtn" type="button">Copiar chave Pix</button>
-      <button class="btn secondary full" id="paymentLinkBtn" type="button">Pagar com cartao/link</button>
+      <button class="payment-method-card" id="copyPixBtn" type="button" data-payment-method="pix">
+        <strong>Pix</strong>
+        <span>Copia a chave Pix</span>
+      </button>
+      <button class="payment-method-card" id="cardPaymentBtn" type="button" data-payment-method="card">
+        <strong>Cartao</strong>
+        <span>Mercado Pago</span>
+      </button>
+      <button class="payment-method-card" id="paymentLinkBtn" type="button" data-payment-method="link">
+        <strong>Link</strong>
+        <span>Checkout seguro</span>
+      </button>
+      <button class="payment-method-card active" id="negotiatePaymentBtn" type="button" data-payment-method="whatsapp">
+        <strong>WhatsApp</strong>
+        <span>Combinar pagamento</span>
+      </button>
     </div>
     <p id="paymentInfo" class="payment-info">Configure a chave Pix ou link de pagamento no painel.</p>
   </div>
@@ -356,6 +800,20 @@
   <button class="btn primary full" id="checkoutBtn" type="button">Finalizar pelo WhatsApp</button>
 </aside>
 
+<div class="payment-modal" id="cardPaymentModal" aria-hidden="true">
+  <div class="payment-modal-panel" role="dialog" aria-modal="true" aria-labelledby="cardPaymentTitle">
+    <div class="payment-modal-head">
+      <div>
+        <strong id="cardPaymentTitle">Pagamento com cartao</strong>
+        <span id="cardPaymentAmount">R$ 0,00</span>
+      </div>
+      <button type="button" id="closeCardPayment" aria-label="Fechar pagamento">x</button>
+    </div>
+    <div id="cardPaymentStatus" class="payment-status">Conectando ao Mercado Pago...</div>
+    <div id="cardPaymentBrick_container"></div>
+  </div>
+</div>
+
 <a id="whatsappFloat" class="whatsapp-float" target="_blank" rel="noopener">WhatsApp</a>
 
 <footer>
@@ -363,6 +821,7 @@
 </footer>
 
 <script src="assets/js/firebase-config.js"></script>
+<script src="https://sdk.mercadopago.com/js/v2"></script>
 <script src="assets/js/app-data.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/customer-auth.js"></script>

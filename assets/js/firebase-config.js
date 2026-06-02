@@ -27,8 +27,13 @@ window.JOHNVISIONSEG_MERCADO_LIVRE = {
 };
 
 window.JOHNVISIONSEG_BACKEND = {
-  // Depois do deploy Firebase Functions, preencha com:
-  // https://southamerica-east1-johnvisionseg-site.cloudfunctions.net
-  functionsBaseUrl: "",
-  createCheckoutPath: "/createCheckout"
+  functionsBaseUrl: "https://southamerica-east1-johnvisionseg-site.cloudfunctions.net",
+  createCheckoutPath: "/createCheckout",
+  processCardPaymentPath: "/processCardPayment"
+};
+
+window.JOHNVISIONSEG_MERCADO_PAGO = {
+  // Preencha com sua Public Key do Mercado Pago. Pode ficar no frontend.
+  publicKey: "",
+  maxInstallments: 10
 };

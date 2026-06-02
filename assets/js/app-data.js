@@ -31,6 +31,12 @@ const defaultApp = {
     { id: 4, name: "Alarme Residencial", category: "Alarmes", price: 349.90, stock: 6, minStock: 2, emoji: "ALM", desc: "Central de alarme com sensores, sirene e acionamento prático." },
     { id: 5, name: "Kit Cerca Elétrica", category: "Cerca Elétrica", price: 699.90, stock: 2, minStock: 2, emoji: "CER", desc: "Proteção perimetral para muros e fachadas." },
     { id: 6, name: "Vídeo Porteiro", category: "Acesso", price: 599.90, stock: 3, minStock: 1, emoji: "VID", desc: "Controle de entrada com vídeo, áudio e mais comodidade." },
+    { id: 201, name: "Câmera iCSee Wi-Fi 5MP PTZ Inteligente", category: "Câmeras iCSee", price: 279.90, stock: 9, minStock: 3, emoji: "ICS", imageUrl: "", desc: "Câmera iCSee com movimento PTZ, áudio bidirecional, visão noturna e detecção humana para monitoramento pelo celular.", specs: ["Aplicativo iCSee", "Resolução 5MP", "Movimento PTZ", "Áudio bidirecional", "Detecção humana", "Visão noturna", "Wi-Fi", "Uso interno/externo"] },
+    { id: 202, name: "Câmera iCSee 4K 8MP Lente Dupla", category: "Câmeras iCSee", price: 449.90, stock: 7, minStock: 2, emoji: "4K", imageUrl: "", desc: "Modelo iCSee 4K com lente dupla, imagem ampla, rastreamento automático e alerta de movimento em tempo real.", specs: ["Aplicativo iCSee", "Imagem 4K", "Resolução 8MP", "Lente dupla", "Rastreamento automático", "Alerta de movimento", "Visão noturna colorida", "Wi-Fi"] },
+    { id: 203, name: "Câmera iCSee Solar 3MP com Bateria", category: "Câmeras iCSee", price: 399.90, stock: 6, minStock: 2, emoji: "SOL", imageUrl: "", desc: "Câmera sem fio iCSee com painel solar, bateria recarregável, sensor PIR e instalação prática em áreas externas.", specs: ["Aplicativo iCSee", "Painel solar", "Bateria recarregável", "Resolução 3MP", "Sensor PIR", "Sem fio", "Uso externo", "Visão noturna"] },
+    { id: 204, name: "Câmera iCSee Mini Dome Wi-Fi 3MP", category: "Câmeras iCSee", price: 199.90, stock: 10, minStock: 4, emoji: "DME", imageUrl: "", desc: "Mini câmera dome iCSee para ambientes internos, com acesso remoto, áudio e gravação em cartão de memória.", specs: ["Aplicativo iCSee", "Resolução 3MP", "Modelo dome", "Áudio", "Cartão microSD", "Acesso remoto", "Wi-Fi", "Instalação interna"] },
+    { id: 205, name: "Câmera iCSee Externa Bullet 5MP", category: "Câmeras iCSee", price: 249.90, stock: 8, minStock: 3, emoji: "EXT", imageUrl: "", desc: "Câmera bullet externa iCSee com boa definição, proteção contra chuva e acompanhamento pelo aplicativo.", specs: ["Aplicativo iCSee", "Resolução 5MP", "Modelo bullet", "Uso externo", "Proteção contra chuva", "Visão noturna", "Detecção de movimento", "Wi-Fi"] },
+    { id: 206, name: "Câmera iCSee PTZ 6K Três Lentes", category: "Câmeras iCSee", price: 589.90, stock: 5, minStock: 2, emoji: "6K", imageUrl: "", desc: "Câmera iCSee avançada com três lentes, imagem 6K, PTZ e rastreamento para áreas amplas.", specs: ["Aplicativo iCSee", "Imagem 6K", "Três lentes", "Movimento PTZ", "Rastreamento automático", "Tela múltipla", "Uso externo", "Wi-Fi"] },
     { id: 101, name: "Mini Câmera PTZ Wi-Fi 5MP H.265 ONVIF", category: "Câmeras PTZ", price: 289.90, stock: 6, minStock: 3, emoji: "PTZ", imageUrl: "", desc: "Câmera PTZ Wi-Fi de 5MP com rastreamento automático, detecção humana por IA, ONVIF e acesso pelo aplicativo iCSee.", specs: ["Resolução 5MP", "Movimento PTZ", "Rastreamento automático", "Detecção humana por IA", "Zoom digital 4x", "Compressão H.265", "Compatível com ONVIF", "Aplicativo iCSee"] },
     { id: 102, name: "Mini Câmera PTZ Wi-Fi 5MP com Luz Dupla", category: "Câmeras PTZ", price: 289.90, stock: 6, minStock: 3, emoji: "PTZ", imageUrl: "", desc: "Mini câmera IP sem fio com rastreamento automático, fonte de luz dupla, zoom digital e detecção humana.", specs: ["Resolução 5MP", "Movimento PTZ", "Rastreamento automático", "Detecção humana por IA", "Zoom digital 4x", "Luz dupla e visão noturna colorida", "Compatível com ONVIF", "Aplicativo iCSee"] },
     { id: 103, name: "Câmera PTZ Wi-Fi 5MP H.265 iCSee", category: "Câmeras PTZ", price: 299.90, stock: 6, minStock: 3, emoji: "PTZ", imageUrl: "", desc: "Câmera Wi-Fi PTZ para CFTV com compressão H.265, ONVIF, zoom digital 4x e rastreamento automático.", specs: ["Resolução 5MP", "Movimento PTZ", "Rastreamento automático", "Zoom digital 4x", "Compressão H.265", "Compatível com ONVIF", "Detecção humana por IA", "Aplicativo iCSee"] },
@@ -65,12 +71,15 @@ let dataStatus = { mode: "local", message: "Dados locais ativos." };
 const FIREBASE_SDK_VERSION = "11.0.1";
 
 function mergeAppData(data) {
+  const savedProducts = Array.isArray(data && data.products) ? data.products : defaultApp.products;
+  const savedIds = new Set(savedProducts.map((product) => Number(product.id)));
+  const missingDefaultProducts = defaultApp.products.filter((product) => !savedIds.has(Number(product.id)));
   return {
     ...JSON.parse(JSON.stringify(defaultApp)),
     ...(data || {}),
     settings: { ...defaultApp.settings, ...((data && data.settings) || {}) },
     services: Array.isArray(data && data.services) ? data.services : defaultApp.services,
-    products: Array.isArray(data && data.products) ? data.products : defaultApp.products,
+    products: [...savedProducts, ...missingDefaultProducts],
     portfolio: Array.isArray(data && data.portfolio) ? data.portfolio : defaultApp.portfolio,
     testimonials: Array.isArray(data && data.testimonials) ? data.testimonials : defaultApp.testimonials,
     orders: Array.isArray(data && data.orders) ? data.orders : [],
