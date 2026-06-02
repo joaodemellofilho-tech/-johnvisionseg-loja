@@ -336,10 +336,76 @@ async function copyPixKey() {
 }
 
 function openPaymentLink() {
+  const backendUrl = getCreateCheckoutUrl();
+  if (backendUrl) {
+    createBackendCheckout(backendUrl);
+    return;
+  }
   const link = String(app.settings.paymentLink || "").trim();
   if (!link) return alert("Link de pagamento nao configurado no painel.");
   if (!cart.length) return alert("Adicione produtos ao carrinho antes de pagar.");
   window.open(addPaymentLinkParams(link), "_blank", "noopener");
+}
+
+function getCreateCheckoutUrl() {
+  const backend = window.JOHNVISIONSEG_BACKEND || {};
+  const base = String(backend.functionsBaseUrl || "").trim().replace(/\/$/, "");
+  const path = String(backend.createCheckoutPath || "/createCheckout").trim();
+  return base ? `${base}${path.startsWith("/") ? path : `/${path}`}` : "";
+}
+
+async function createBackendCheckout(url) {
+  if (!cart.length) return alert("Adicione produtos ao carrinho antes de pagar.");
+  const order = buildOrderPayload("Aguardando pagamento");
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(order)
+    });
+    const data = await response.json();
+    if (!response.ok || !data.initPoint) throw new Error(data.error || "Falha ao criar pagamento.");
+    app.orders.unshift({ ...order, status: "Aguardando pagamento", paymentProvider: "mercadopago", paymentStatus: "pending", paymentUrl: data.initPoint, mercadoPagoPreferenceId: data.preferenceId });
+    app.customers.unshift({ name: order.name, phone: order.phone, address: order.address, date: order.date, type: "Compra" });
+    saveApp(app);
+    window.open(data.initPoint, "_blank", "noopener");
+    alert("Pagamento criado. Depois da aprovacao, o painel atualiza pelo webhook.");
+  } catch (error) {
+    alert(`Nao foi possivel criar o pagamento automatico: ${error.message}`);
+  }
+}
+
+function buildOrderPayload(status = "Novo") {
+  const name = document.getElementById("customerName").value.trim() || "Cliente";
+  const phone = document.getElementById("customerPhone").value.trim();
+  const address = document.getElementById("customerAddress").value.trim();
+  const orderItems = cart.map((item) => {
+    const product = app.products.find((productItem) => productItem.id === item.id) || {};
+    return {
+      ...item,
+      fulfillment: getFulfillmentMode(product),
+      supplier: product.supplier || item.supplier || "",
+      deliveryTime: product.deliveryTime || item.deliveryTime || "",
+      cost: Number(product.cost || item.cost || 0),
+      supplierUrl: product.supplierUrl || product.sourceUrl || item.supplierUrl || "",
+      supplierSku: product.supplierSku || item.supplierSku || ""
+    };
+  });
+  const total = orderItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const supplierCost = orderItems.reduce((sum, item) => sum + Number(item.cost || 0) * Number(item.qty || 1), 0);
+  return {
+    id: Date.now(),
+    date: new Date().toLocaleString("pt-BR"),
+    name,
+    phone,
+    address,
+    total,
+    supplierCost,
+    profit: total - supplierCost,
+    status,
+    fulfillmentStatus: status === "Pago" ? "Comprar no fornecedor" : "Aguardando pagamento",
+    items: orderItems
+  };
 }
 
 function addPaymentLinkParams(link) {
@@ -377,26 +443,9 @@ function closeCart() {
 
 async function checkout() {
   if (!cart.length) return alert("Carrinho vazio.");
-  const name = document.getElementById("customerName").value.trim() || "Cliente";
-  const phone = document.getElementById("customerPhone").value.trim();
-  const address = document.getElementById("customerAddress").value.trim();
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const orderItems = cart.map((item) => {
-    const product = app.products.find((productItem) => productItem.id === item.id) || {};
-    return {
-      ...item,
-      fulfillment: getFulfillmentMode(product),
-      supplier: product.supplier || item.supplier || "",
-      deliveryTime: product.deliveryTime || item.deliveryTime || "",
-      cost: Number(product.cost || item.cost || 0),
-      supplierUrl: product.supplierUrl || product.sourceUrl || item.supplierUrl || "",
-      supplierSku: product.supplierSku || item.supplierSku || ""
-    };
-  });
-  const supplierCost = orderItems.reduce((sum, item) => sum + Number(item.cost || 0) * Number(item.qty || 1), 0);
-  const order = { id: Date.now(), date: new Date().toLocaleString("pt-BR"), name, phone, address, total, supplierCost, profit: total - supplierCost, status: "Novo", fulfillmentStatus: "Aguardando pagamento", items: orderItems };
+  const order = buildOrderPayload("Novo");
   app.orders.unshift(order);
-  app.customers.unshift({ name, phone, address, date: order.date, type: "Compra" });
+  app.customers.unshift({ name: order.name, phone: order.phone, address: order.address, date: order.date, type: "Compra" });
   cart.forEach((item) => {
     const product = app.products.find((productItem) => productItem.id === item.id);
     if (product && !isDropshipProduct(product)) product.stock = Math.max(0, product.stock - item.qty);
@@ -405,14 +454,14 @@ async function checkout() {
   const message = [
     "Ola! Quero fechar este pedido na John@VisionSeg.",
     "",
-    `Cliente: ${name}`,
-    `Telefone: ${phone}`,
-    `Endereco/Obs: ${address}`,
+    `Cliente: ${order.name}`,
+    `Telefone: ${order.phone}`,
+    `Endereco/Obs: ${order.address}`,
     "",
     "Itens:",
-    ...orderItems.map((item) => `- ${item.qty}x ${item.name} = ${brl(item.price * item.qty)}${item.deliveryTime ? ` | Prazo: ${item.deliveryTime}` : ""}`),
+    ...order.items.map((item) => `- ${item.qty}x ${item.name} = ${brl(item.price * item.qty)}${item.deliveryTime ? ` | Prazo: ${item.deliveryTime}` : ""}`),
     "",
-    `Total: ${brl(total)}`,
+    `Total: ${brl(order.total)}`,
     app.settings.pixKey ? `Pix: ${app.settings.pixKey}` : "",
     app.settings.paymentLink ? `Link de pagamento: ${app.settings.paymentLink}` : "",
     app.settings.paymentInstructions ? `Instrucao: ${app.settings.paymentInstructions}` : "",

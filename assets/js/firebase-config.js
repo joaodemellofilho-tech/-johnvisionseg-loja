@@ -25,3 +25,10 @@ window.JOHNVISIONSEG_MERCADO_LIVRE = {
   affiliateTag: "",
   usePublicItemLookup: true
 };
+
+window.JOHNVISIONSEG_BACKEND = {
+  // Depois do deploy Firebase Functions, preencha com:
+  // https://southamerica-east1-johnvisionseg-site.cloudfunctions.net
+  functionsBaseUrl: "",
+  createCheckoutPath: "/createCheckout"
+};
