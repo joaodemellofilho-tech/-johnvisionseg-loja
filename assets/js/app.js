@@ -325,19 +325,29 @@ function renderPaymentOptions() {
 
   const hasPix = Boolean(String(app.settings.pixKey || "").trim());
   const hasCheckoutApi = Boolean(getCreateCheckoutUrl());
+  const hasCardEndpoint = Boolean(getProcessCardPaymentUrl());
+  const hasMercadoPagoKey = Boolean(getMercadoPagoPublicKey());
   const hasLink = Boolean(String(app.settings.paymentLink || "").trim()) || hasCheckoutApi;
-  const hasCardPayment = Boolean(getProcessCardPaymentUrl() && getMercadoPagoPublicKey());
+  const hasCardPayment = Boolean(hasCardEndpoint && hasMercadoPagoKey);
   pixBtn.disabled = !hasPix;
   linkBtn.disabled = !hasLink || !cart.length;
   if (cardBtn) cardBtn.disabled = !hasCardPayment || !cart.length;
   setPaymentCardState(pixBtn, hasPix, "Pix", hasPix ? "Copia a chave Pix" : "Configure no painel");
   setPaymentCardState(linkBtn, hasLink, "Link", hasCheckoutApi ? "API Mercado Pago" : "Checkout seguro");
-  if (cardBtn) setPaymentCardState(cardBtn, hasCardPayment, "Cartao", hasCardPayment ? "Mercado Livre / Mercado Pago" : "Configure public key");
+  if (cardBtn) {
+    const cardHelp = !hasCardEndpoint
+      ? "API nao publicada"
+      : !hasMercadoPagoKey
+        ? "Falta Public Key no painel"
+        : "Mercado Livre / Mercado Pago";
+    setPaymentCardState(cardBtn, hasCardPayment, "Cartao", cardHelp);
+  }
   updatePaymentMethodSelection();
 
   const details = [];
   if (hasPix) details.push(`Pix: ${app.settings.pixName || app.settings.companyName || "John@VisionSeg"}`);
   if (hasCardPayment) details.push("Cartao via Mercado Livre / Mercado Pago");
+  if (hasCardEndpoint && !hasMercadoPagoKey) details.push("Cartao: coloque a Public Key do Mercado Pago no painel admin");
   if (hasLink) details.push("Cartao/link de pagamento disponivel");
   if (!cart.length) details.push("Adicione produtos ao carrinho para pagar");
   info.textContent = details.length ? details.join(" | ") : "Configure Pix ou link de pagamento no painel.";
@@ -441,7 +451,8 @@ async function openCardPayment() {
   if (!cart.length) return alert("Adicione produtos ao carrinho antes de pagar.");
   const publicKey = getMercadoPagoPublicKey();
   const url = getProcessCardPaymentUrl();
-  if (!publicKey || !url) return alert("Pagamento com cartao ainda nao configurado.");
+  if (!url) return alert("API de pagamento com cartao ainda nao publicada.");
+  if (!publicKey) return alert("Pagamento com cartao ainda nao configurado. Abra o painel admin e salve a Public Key do Mercado Pago.");
 
   cardPaymentOrder = buildOrderPayload("Aguardando pagamento");
   const modal = document.getElementById("cardPaymentModal");

@@ -1,5 +1,6 @@
 const admin = require("firebase-admin");
 const { onRequest } = require("firebase-functions/v2/https");
+const { defineSecret } = require("firebase-functions/params");
 const { logger } = require("firebase-functions");
 
 admin.initializeApp();
@@ -9,6 +10,8 @@ const REGION = process.env.FUNCTION_REGION || "southamerica-east1";
 const COLLECTION = process.env.FIRESTORE_COLLECTION || "johnvisionseg_sites";
 const DOC_ID = process.env.FIRESTORE_DOC_ID || "main";
 const MP_API = "https://api.mercadopago.com";
+const mercadoPagoAccessToken = defineSecret("MERCADO_PAGO_ACCESS_TOKEN");
+const functionOptions = { region: REGION, secrets: [mercadoPagoAccessToken] };
 
 function configValue(envName, configPath) {
   if (process.env[envName]) return process.env[envName];
@@ -245,7 +248,7 @@ function buildNotificationUrl(req) {
   return `${protocol}://${req.get("host")}/mercadoPagoWebhook`;
 }
 
-exports.createCheckout = onRequest({ region: REGION }, async (req, res) => {
+exports.createCheckout = onRequest(functionOptions, async (req, res) => {
   cors(res);
   if (req.method === "OPTIONS") return res.status(204).send("");
   if (req.method !== "POST") return res.status(405).json({ error: "Metodo nao permitido." });
@@ -276,7 +279,7 @@ exports.createCheckout = onRequest({ region: REGION }, async (req, res) => {
   }
 });
 
-exports.processCardPayment = onRequest({ region: REGION }, async (req, res) => {
+exports.processCardPayment = onRequest(functionOptions, async (req, res) => {
   cors(res);
   if (req.method === "OPTIONS") return res.status(204).send("");
   if (req.method !== "POST") return res.status(405).json({ error: "Metodo nao permitido." });
@@ -324,7 +327,7 @@ exports.processCardPayment = onRequest({ region: REGION }, async (req, res) => {
   }
 });
 
-exports.mercadoPagoWebhook = onRequest({ region: REGION }, async (req, res) => {
+exports.mercadoPagoWebhook = onRequest(functionOptions, async (req, res) => {
   if (req.method !== "POST") return res.status(200).send("ok");
   try {
     const body = req.body || {};
