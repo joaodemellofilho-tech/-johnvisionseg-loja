@@ -1,6 +1,7 @@
 let app = getApp();
 let agentMessages = [];
 let currentAdmin = null;
+let selectedProductIndexes = new Set();
 
 async function login() {
   const email = document.getElementById("email").value.trim().toLowerCase();
@@ -359,8 +360,14 @@ function toggleMaintenanceMode() {
 }
 
 function renderProducts() {
+  selectedProductIndexes = new Set([...selectedProductIndexes].filter((index) => index >= 0 && index < app.products.length));
+  updateProductSelectionSummary();
   document.getElementById("productsList").innerHTML = app.products.map((product, index) => `
-    <div class="admin-card product-editor">
+    <div class="admin-card product-editor ${selectedProductIndexes.has(index) ? "selected" : ""}">
+      <label class="product-select-row">
+        <input type="checkbox" data-product-select="${index}" ${selectedProductIndexes.has(index) ? "checked" : ""} onchange="toggleProductSelection(${index}, this.checked)">
+        <span>Selecionar produto</span>
+      </label>
       <div class="admin-product-grid">
         <div class="product-preview has-photo">
           <img src="${escapeHtml(getAdminProductImage(product))}" alt="${escapeHtml(product.name)}">
@@ -410,6 +417,51 @@ function renderProducts() {
       </div>
     </div>
   `).join("");
+  updateProductSelectionSummary();
+}
+
+function toggleProductSelection(index, checked) {
+  if (checked) selectedProductIndexes.add(index);
+  else selectedProductIndexes.delete(index);
+  updateProductSelectionSummary();
+  const card = document.querySelector(`[data-product-select="${index}"]`)?.closest(".product-editor");
+  if (card) card.classList.toggle("selected", checked);
+}
+
+function toggleAllProductSelection(checked) {
+  selectedProductIndexes = checked ? new Set(app.products.map((_, index) => index)) : new Set();
+  renderProducts();
+}
+
+function clearProductSelection() {
+  selectedProductIndexes.clear();
+  renderProducts();
+}
+
+async function removeSelectedProducts() {
+  const indexes = [...selectedProductIndexes].sort((a, b) => b - a);
+  if (!indexes.length) return alert("Selecione pelo menos um produto para remover.");
+  const preview = indexes.slice(0, 5).map((index) => app.products[index]?.name).filter(Boolean).join("\n- ");
+  const extra = indexes.length > 5 ? `\n...e mais ${indexes.length - 5} produto(s)` : "";
+  if (!confirm(`Remover ${indexes.length} produto(s)?\n\n- ${preview}${extra}`)) return;
+  indexes.forEach((index) => app.products.splice(index, 1));
+  selectedProductIndexes.clear();
+  await saveApp(app);
+  renderProducts();
+  renderDashboard();
+  renderAgent();
+  notice();
+}
+
+function updateProductSelectionSummary() {
+  const count = selectedProductIndexes.size;
+  const countEl = document.getElementById("selectedProductsCount");
+  const toggle = document.getElementById("selectAllProducts");
+  if (countEl) countEl.textContent = `${count} selecionado${count === 1 ? "" : "s"}`;
+  if (toggle) {
+    toggle.checked = app.products.length > 0 && count === app.products.length;
+    toggle.indeterminate = count > 0 && count < app.products.length;
+  }
 }
 
 function getFulfillmentMode(product) {
@@ -734,6 +786,7 @@ function getStorefrontFallbackImage(product) {
 function addProduct() {
   const generated = generateProductProfile({ name: "Novo produto", category: "Cameras", price: 0, stock: 0, desc: "" });
   app.products.unshift({ id: Date.now(), name: "Novo produto", category: generated.category, price: generated.price, stock: generated.stock, minStock: generated.minStock, emoji: generated.emoji, imageUrl: getStorefrontFallbackImage(generated), fulfillment: "local", supplier: "", deliveryTime: "Pronta entrega", cost: 0, supplierUrl: "", supplierSku: "", specs: generated.specs, desc: generated.desc });
+  selectedProductIndexes.clear();
   saveApp(app);
   renderProducts();
   renderDashboard();
@@ -743,6 +796,7 @@ function addProduct() {
 function removeProduct(index) {
   if (confirm("Remover este produto?")) {
     app.products.splice(index, 1);
+    selectedProductIndexes.clear();
     saveApp(app);
     renderProducts();
     renderDashboard();

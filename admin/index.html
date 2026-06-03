@@ -229,6 +229,15 @@
         <textarea id="mlProductsInput" placeholder="Ex: https://produto.mercadolivre.com.br/MLB-1234567890-produto ou MLB1234567890"></textarea>
         <button onclick="importMercadoLivreProducts()" type="button">Importar do Mercado Livre</button>
       </details>
+      <div class="bulk-product-actions">
+        <label class="bulk-select-toggle">
+          <input id="selectAllProducts" type="checkbox" onchange="toggleAllProductSelection(this.checked)">
+          Selecionar todos
+        </label>
+        <span id="selectedProductsCount">0 selecionados</span>
+        <button onclick="clearProductSelection()" type="button">Limpar selecao</button>
+        <button onclick="removeSelectedProducts()" type="button" class="danger">Remover selecionados</button>
+      </div>
       <div id="productsList"></div>
       <button onclick="addProduct()" type="button">Adicionar produto manual</button>
       <button onclick="saveProducts()" type="button">Salvar produtos</button>
@@ -241,9 +250,9 @@
     <section id="panel-testimonials" class="panel"><h1>Depoimentos</h1><div id="testimonialsList"></div><button onclick="addTestimonial()" type="button">Adicionar depoimento</button><button onclick="saveTestimonials()" type="button">Salvar depoimentos</button></section>
   </main>
 </div>
-<script src="../assets/js/firebase-config.js?v=22"></script>
-<script src="../assets/js/app-data.js?v=22"></script>
+<script src="../assets/js/firebase-config.js?v=23"></script>
+<script src="../assets/js/app-data.js?v=23"></script>
 <script src="ai_mock.js"></script>
-<script src="admin.js?v=22"></script>
+<script src="admin.js?v=23"></script>
 </body>
 </html>

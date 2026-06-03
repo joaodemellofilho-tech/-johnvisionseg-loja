@@ -816,6 +816,53 @@ textarea { min-height: 112px; resize: vertical; }
   margin-left: 6px;
   margin-top: 6px;
 }
+.bulk-product-actions {
+  position: sticky;
+  top: 78px;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(7, 24, 40, .94);
+  box-shadow: var(--shadow-card);
+}
+.bulk-select-toggle,
+.product-select-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-weight: 800;
+}
+.bulk-select-toggle input,
+.product-select-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--cyan);
+}
+#selectedProductsCount {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: .85rem;
+}
+.product-select-row {
+  width: fit-content;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(0, 212, 255, .16);
+  border-radius: 8px;
+  background: rgba(0, 212, 255, .05);
+  font-size: .82rem;
+}
+.product-editor.selected {
+  border-color: rgba(0, 212, 255, .48);
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, .12), var(--shadow-card);
+}
 .qty-actions { display: flex; gap: 6px; align-items: center; }
 .qty-actions button {
   width: 30px; height: 30px;
