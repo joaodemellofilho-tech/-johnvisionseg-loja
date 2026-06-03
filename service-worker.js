@@ -1,4 +1,4 @@
-const CACHE_NAME = "johnvisionseg-pro-storefront-v26";
+const CACHE_NAME = "johnvisionseg-pro-storefront-v27";
 const ASSETS = [
   "./",
   "./index.html",
@@ -16,6 +16,7 @@ const ASSETS = [
   "./assets/images/product-fence.svg",
   "./assets/images/product-access.svg",
   "./assets/icons/favicon.svg",
+  "./assets/icons/johnvisionseg-logo.webp",
   "./assets/icons/logo-mark.svg",
   "./assets/icons/logo.svg",
   "./assets/icons/pattern.svg"
