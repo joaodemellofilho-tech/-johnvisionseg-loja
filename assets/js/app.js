@@ -17,6 +17,7 @@ const cartOverlay = document.getElementById("cartOverlay");
 const checkoutPage = document.getElementById("checkoutPage");
 let promoSlideIndex = 0;
 let promoTimer = null;
+let productHoverState = { productId: null, imageIndex: 0, hideTimer: null, anchor: null };
 const welcomeMessages = {
   intro: {
     badge: "Loja online",
@@ -211,7 +212,7 @@ function renderProducts() {
   }
 
   grid.innerHTML = products.length ? products.map((product) => `
-    <article class="product-card ${!isProductAvailable(product) ? "is-unavailable" : ""}" data-product-id="${Number(product.id)}">
+    <article class="product-card ${!isProductAvailable(product) ? "is-unavailable" : ""}" data-product-id="${Number(product.id)}" tabindex="0">
       <div class="product-img has-photo">
         <img src="${escapeHtml(getProductImages(product)[0])}" alt="${escapeHtml(product.name)}" loading="lazy">
       </div>
@@ -226,6 +227,7 @@ function renderProducts() {
       </div>
     </article>
   `).join("") : '<div class="empty-state">Nenhum produto encontrado para essa busca.</div>';
+  hideProductHover();
 }
 
 function focusProduct(id) {
@@ -247,6 +249,135 @@ function sortProductList(products) {
     if (available !== 0) return available;
     return Number(b.stock || 0) - Number(a.stock || 0);
   });
+}
+
+function ensureProductHoverViewer() {
+  let viewer = document.getElementById("productHoverViewer");
+  if (viewer) return viewer;
+  viewer = document.createElement("aside");
+  viewer.id = "productHoverViewer";
+  viewer.className = "product-hover-viewer";
+  viewer.setAttribute("aria-live", "polite");
+  viewer.hidden = true;
+  viewer.addEventListener("mouseenter", cancelProductHoverClose);
+  viewer.addEventListener("mouseleave", scheduleProductHoverClose);
+  viewer.addEventListener("click", (event) => {
+    const nav = event.target.closest("[data-hover-nav]");
+    if (nav) {
+      changeHoverProductImage(Number(nav.dataset.hoverNav));
+      return;
+    }
+    const thumb = event.target.closest("[data-hover-thumb]");
+    if (thumb) {
+      setHoverProductImage(Number(thumb.dataset.hoverThumb));
+      return;
+    }
+    const addButton = event.target.closest("[data-hover-add]");
+    if (addButton) {
+      addToCart(Number(addButton.dataset.hoverAdd));
+    }
+  });
+  document.body.appendChild(viewer);
+  return viewer;
+}
+
+function showProductHover(productId, anchor) {
+  const product = app.products.find((item) => Number(item.id) === Number(productId));
+  if (!product) return;
+  cancelProductHoverClose();
+  const changedProduct = Number(productHoverState.productId) !== Number(productId);
+  productHoverState = {
+    ...productHoverState,
+    productId: Number(productId),
+    imageIndex: changedProduct ? 0 : productHoverState.imageIndex,
+    anchor
+  };
+  renderProductHoverViewer(product);
+  positionProductHoverViewer(anchor);
+}
+
+function renderProductHoverViewer(product) {
+  const viewer = ensureProductHoverViewer();
+  const images = getProductImages(product);
+  const index = Math.min(productHoverState.imageIndex, images.length - 1);
+  productHoverState.imageIndex = index;
+  viewer.hidden = false;
+  viewer.innerHTML = `
+    <div class="product-hover-media">
+      <button class="product-hover-nav prev" type="button" data-hover-nav="-1" aria-label="Imagem anterior">‹</button>
+      <img src="${escapeHtml(images[index])}" alt="${escapeHtml(product.name)}">
+      <button class="product-hover-nav next" type="button" data-hover-nav="1" aria-label="Proxima imagem">›</button>
+    </div>
+    ${images.length > 1 ? `
+      <div class="product-hover-thumbs" aria-label="Selecionar imagem do produto">
+        ${images.map((image, imageIndex) => `
+          <button class="${imageIndex === index ? "active" : ""}" type="button" data-hover-thumb="${imageIndex}" aria-label="Ver imagem ${imageIndex + 1}">
+            <img src="${escapeHtml(image)}" alt="">
+          </button>
+        `).join("")}
+      </div>
+    ` : ""}
+    <div class="product-hover-info">
+      <span>${escapeHtml(product.category || "Produto")}</span>
+      <strong>${escapeHtml(product.name)}</strong>
+      <p>${escapeHtml(product.desc || getAvailabilityLabel(product))}</p>
+      <div>
+        <b>${brl(product.price)}</b>
+        <button type="button" data-hover-add="${Number(product.id)}" ${!isProductAvailable(product) ? "disabled" : ""}>Adicionar</button>
+      </div>
+    </div>
+  `;
+}
+
+function positionProductHoverViewer(anchor) {
+  const viewer = ensureProductHoverViewer();
+  if (!anchor || viewer.hidden) return;
+  const rect = anchor.getBoundingClientRect();
+  const gap = 14;
+  const headerBottom = document.querySelector(".topbar")?.getBoundingClientRect().bottom || 0;
+  const width = Math.min(430, window.innerWidth - 28);
+  let left = rect.right + gap;
+  if (left + width > window.innerWidth - 14) left = rect.left - width - gap;
+  if (left < 14) left = Math.min(14, window.innerWidth - width - 14);
+  const top = Math.max(headerBottom + 12, Math.min(rect.top, window.innerHeight - 560));
+  viewer.style.width = `${width}px`;
+  viewer.style.left = `${left}px`;
+  viewer.style.top = `${top}px`;
+}
+
+function changeHoverProductImage(delta) {
+  const product = app.products.find((item) => Number(item.id) === Number(productHoverState.productId));
+  if (!product) return;
+  const images = getProductImages(product);
+  productHoverState.imageIndex = (productHoverState.imageIndex + delta + images.length) % images.length;
+  renderProductHoverViewer(product);
+  positionProductHoverViewer(productHoverState.anchor);
+}
+
+function setHoverProductImage(index) {
+  const product = app.products.find((item) => Number(item.id) === Number(productHoverState.productId));
+  if (!product) return;
+  productHoverState.imageIndex = Number(index) || 0;
+  renderProductHoverViewer(product);
+  positionProductHoverViewer(productHoverState.anchor);
+}
+
+function cancelProductHoverClose() {
+  if (productHoverState.hideTimer) clearTimeout(productHoverState.hideTimer);
+  productHoverState.hideTimer = null;
+}
+
+function scheduleProductHoverClose() {
+  cancelProductHoverClose();
+  productHoverState.hideTimer = setTimeout(hideProductHover, 220);
+}
+
+function hideProductHover() {
+  cancelProductHoverClose();
+  const viewer = document.getElementById("productHoverViewer");
+  if (viewer) viewer.hidden = true;
+  productHoverState.productId = null;
+  productHoverState.anchor = null;
 }
 
 function renderProductMedia(product) {
@@ -967,6 +1098,29 @@ function bindEvents() {
   if (heroCartBtn) heroCartBtn.onclick = openCart;
   document.getElementById("closeCart").onclick = closeCart;
   cartOverlay.onclick = closeCart;
+  if (grid) {
+    grid.addEventListener("pointerover", (event) => {
+      const card = event.target.closest(".product-card[data-product-id]");
+      if (!card || !grid.contains(card)) return;
+      showProductHover(Number(card.dataset.productId), card);
+    });
+    grid.addEventListener("pointerout", (event) => {
+      const card = event.target.closest(".product-card[data-product-id]");
+      if (!card || card.contains(event.relatedTarget)) return;
+      scheduleProductHoverClose();
+    });
+    grid.addEventListener("focusin", (event) => {
+      const card = event.target.closest(".product-card[data-product-id]");
+      if (!card) return;
+      showProductHover(Number(card.dataset.productId), card);
+    });
+    grid.addEventListener("click", (event) => {
+      if (event.target.closest("button, a, input, select, textarea")) return;
+      const card = event.target.closest(".product-card[data-product-id]");
+      if (!card) return;
+      showProductHover(Number(card.dataset.productId), card);
+    });
+  }
   search.oninput = () => {
     if (headerSearch && headerSearch.value !== search.value) headerSearch.value = search.value;
     renderProducts();
@@ -1032,6 +1186,7 @@ function bindEvents() {
       closeCart();
       closeCardPayment();
       closeCheckoutPage();
+      hideProductHover();
     }
   });
   document.getElementById("quoteForm").addEventListener("submit", (event) => {
