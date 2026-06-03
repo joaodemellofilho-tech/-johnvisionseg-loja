@@ -1,5 +1,6 @@
 let app;
 let cart = [];
+const CART_STORAGE_KEY = "johnvisionseg_cart";
 let lastAppSync = localStorage.getItem("johnvisionseg_app_pro_updated_at") || "";
 let cardPaymentOrder = null;
 let selectedPaymentMethod = "link";
@@ -13,6 +14,7 @@ const productsCount = document.getElementById("productsCount");
 const categoryStrip = document.getElementById("categoryStrip");
 const cartDrawer = document.getElementById("cartDrawer");
 const cartOverlay = document.getElementById("cartOverlay");
+const checkoutPage = document.getElementById("checkoutPage");
 
 function applySettings() {
   document.querySelectorAll("[data-setting]").forEach((el) => {
@@ -309,18 +311,44 @@ function renderCart() {
     </div>
   `).join("") : '<p class="empty-state">Carrinho vazio.</p>';
   document.getElementById("cartTotal").textContent = brl(cart.reduce((total, item) => total + item.price * item.qty, 0));
+  saveCart();
   renderPaymentOptions();
+  renderCheckoutPage();
 }
 
 function getCartTotal() {
   return cart.reduce((total, item) => total + item.price * item.qty, 0);
 }
 
+function saveCart() {
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+}
+
+function loadCart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+    cart = Array.isArray(saved)
+      ? saved.filter((item) => app.products.some((product) => Number(product.id) === Number(item.id))).map((item) => ({
+        ...item,
+        id: Number(item.id),
+        qty: Math.max(1, Number(item.qty || 1)),
+        price: Number(item.price || 0)
+      }))
+      : [];
+  } catch {
+    cart = [];
+  }
+}
+
 function renderPaymentOptions() {
   const pixBtn = document.getElementById("copyPixBtn");
   const linkBtn = document.getElementById("paymentLinkBtn");
   const cardBtn = document.getElementById("cardPaymentBtn");
+  const checkoutPixBtn = document.getElementById("checkoutPixBtn");
+  const checkoutLinkBtn = document.getElementById("checkoutLinkBtn");
+  const checkoutCardBtn = document.getElementById("checkoutCardBtn");
   const info = document.getElementById("paymentInfo");
+  const checkoutInfo = document.getElementById("checkoutPaymentInfo");
   if (!pixBtn || !linkBtn || !info || !app?.settings) return;
 
   const hasPix = Boolean(String(app.settings.pixKey || "").trim());
@@ -329,19 +357,23 @@ function renderPaymentOptions() {
   const hasMercadoPagoKey = Boolean(getMercadoPagoPublicKey());
   const hasLink = Boolean(String(app.settings.paymentLink || "").trim()) || hasCheckoutApi;
   const hasCardPayment = Boolean(hasCardEndpoint && hasMercadoPagoKey);
+  const cardHelp = !hasCardEndpoint
+    ? "API nao publicada"
+    : !hasMercadoPagoKey
+      ? "Falta Public Key no painel"
+      : "Mercado Livre / Mercado Pago";
   pixBtn.disabled = !hasPix;
   linkBtn.disabled = !hasLink || !cart.length;
   if (cardBtn) cardBtn.disabled = !hasCardPayment || !cart.length;
+  if (checkoutPixBtn) checkoutPixBtn.disabled = !hasPix || !cart.length;
+  if (checkoutLinkBtn) checkoutLinkBtn.disabled = !hasLink || !cart.length;
+  if (checkoutCardBtn) checkoutCardBtn.disabled = !hasCardPayment || !cart.length;
   setPaymentCardState(pixBtn, hasPix, "Pix", hasPix ? "Copia a chave Pix" : "Configure no painel");
   setPaymentCardState(linkBtn, hasLink, "Link", hasCheckoutApi ? "API Mercado Pago" : "Checkout seguro");
-  if (cardBtn) {
-    const cardHelp = !hasCardEndpoint
-      ? "API nao publicada"
-      : !hasMercadoPagoKey
-        ? "Falta Public Key no painel"
-        : "Mercado Livre / Mercado Pago";
-    setPaymentCardState(cardBtn, hasCardPayment, "Cartao", cardHelp);
-  }
+  if (cardBtn) setPaymentCardState(cardBtn, hasCardPayment, "Cartao", cardHelp);
+  if (checkoutPixBtn) setPaymentCardState(checkoutPixBtn, hasPix, "Pix", hasPix ? "Copia a chave Pix" : "Configure no painel");
+  if (checkoutLinkBtn) setPaymentCardState(checkoutLinkBtn, hasLink, "Link", hasCheckoutApi ? "API Mercado Pago" : "Checkout seguro");
+  if (checkoutCardBtn) setPaymentCardState(checkoutCardBtn, hasCardPayment, "Cartao", cardHelp);
   updatePaymentMethodSelection();
 
   const details = [];
@@ -351,6 +383,7 @@ function renderPaymentOptions() {
   if (hasLink) details.push("Cartao/link de pagamento disponivel");
   if (!cart.length) details.push("Adicione produtos ao carrinho para pagar");
   info.textContent = details.length ? details.join(" | ") : "Configure Pix ou link de pagamento no painel.";
+  if (checkoutInfo) checkoutInfo.textContent = info.textContent;
 }
 
 function setPaymentCardState(button, enabled, title, subtitle) {
@@ -549,9 +582,15 @@ async function closeCardPayment() {
 }
 
 function buildOrderPayload(status = "Novo") {
-  const name = document.getElementById("customerName").value.trim() || "Cliente";
-  const phone = document.getElementById("customerPhone").value.trim();
-  const address = document.getElementById("customerAddress").value.trim();
+  if (isCheckoutVisible()) syncCartFieldsFromCheckout();
+  const nameInput = isCheckoutVisible() ? document.getElementById("checkoutCustomerName") : document.getElementById("customerName");
+  const phoneInput = isCheckoutVisible() ? document.getElementById("checkoutCustomerPhone") : document.getElementById("customerPhone");
+  const addressInput = isCheckoutVisible() ? document.getElementById("checkoutCustomerAddress") : document.getElementById("customerAddress");
+  const emailInput = document.getElementById("checkoutCustomerEmail");
+  const name = nameInput?.value.trim() || "Cliente";
+  const phone = phoneInput?.value.trim() || "";
+  const address = addressInput?.value.trim() || "";
+  const email = emailInput?.value.trim() || "";
   const orderItems = cart.map((item) => {
     const product = app.products.find((productItem) => productItem.id === item.id) || {};
     return {
@@ -574,6 +613,7 @@ function buildOrderPayload(status = "Novo") {
     date: new Date().toLocaleString("pt-BR"),
     name,
     phone,
+    email,
     address,
     total,
     supplierCost,
@@ -618,6 +658,76 @@ function closeCart() {
   cartOverlay.hidden = true;
 }
 
+function openCheckoutPage() {
+  if (!cart.length) return alert("Adicione produtos ao carrinho antes de abrir o checkout.");
+  syncCheckoutFieldsFromCart();
+  renderCheckoutPage();
+  closeCart();
+  if (checkoutPage) checkoutPage.hidden = false;
+  document.body.classList.add("checkout-active");
+  window.location.hash = "checkout";
+  checkoutPage?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function closeCheckoutPage() {
+  if (checkoutPage) checkoutPage.hidden = true;
+  document.body.classList.remove("checkout-active");
+  if (window.location.hash === "#checkout") history.replaceState(null, "", window.location.pathname + window.location.search);
+}
+
+function syncCheckoutFieldsFromCart() {
+  const pairs = [
+    ["customerName", "checkoutCustomerName"],
+    ["customerPhone", "checkoutCustomerPhone"],
+    ["customerAddress", "checkoutCustomerAddress"]
+  ];
+  pairs.forEach(([sourceId, targetId]) => {
+    const source = document.getElementById(sourceId);
+    const target = document.getElementById(targetId);
+    if (source && target && !target.value) target.value = source.value;
+  });
+}
+
+function syncCartFieldsFromCheckout() {
+  const pairs = [
+    ["checkoutCustomerName", "customerName"],
+    ["checkoutCustomerPhone", "customerPhone"],
+    ["checkoutCustomerAddress", "customerAddress"]
+  ];
+  pairs.forEach(([sourceId, targetId]) => {
+    const source = document.getElementById(sourceId);
+    const target = document.getElementById(targetId);
+    if (source && target) target.value = source.value;
+  });
+}
+
+function isCheckoutVisible() {
+  return Boolean(checkoutPage && !checkoutPage.hidden);
+}
+
+function renderCheckoutPage() {
+  const itemsTarget = document.getElementById("checkoutItems");
+  if (!itemsTarget) return;
+  const totalQty = cart.reduce((total, item) => total + Number(item.qty || 0), 0);
+  const total = getCartTotal();
+  document.getElementById("checkoutItemsCount").textContent = `${totalQty} ${totalQty === 1 ? "item" : "itens"}`;
+  document.getElementById("checkoutSubtotal").textContent = brl(total);
+  document.getElementById("checkoutTotal").textContent = brl(total);
+  itemsTarget.innerHTML = cart.length ? cart.map((item) => {
+    const product = app.products.find((productItem) => Number(productItem.id) === Number(item.id)) || {};
+    return `
+      <div class="checkout-item">
+        <img src="${escapeHtml(getProductImages(product)[0])}" alt="${escapeHtml(item.name)}">
+        <div>
+          <strong>${escapeHtml(item.name)}</strong>
+          <span>${Number(item.qty || 1)} x ${brl(item.price)}</span>
+        </div>
+        <b>${brl(item.price * item.qty)}</b>
+      </div>
+    `;
+  }).join("") : '<p class="empty-state">Seu carrinho esta vazio.</p>';
+}
+
 async function checkout() {
   if (!cart.length) return alert("Carrinho vazio.");
   const order = buildOrderPayload("Novo");
@@ -655,6 +765,7 @@ async function checkout() {
 }
 
 function bindEvents() {
+  ensureCheckoutButton();
   document.getElementById("cartBtn").onclick = openCart;
   const heroCartBtn = document.getElementById("heroCartBtn");
   if (heroCartBtn) heroCartBtn.onclick = openCart;
@@ -692,10 +803,21 @@ function bindEvents() {
   const closeCardPaymentBtn = document.getElementById("closeCardPayment");
   if (cardPaymentBtn) cardPaymentBtn.onclick = () => { selectPaymentMethod("card"); openCardPayment(); };
   if (closeCardPaymentBtn) closeCardPaymentBtn.onclick = closeCardPayment;
+  const openCheckoutBtn = document.getElementById("openCheckoutBtn");
+  const checkoutBackBtn = document.getElementById("checkoutBackBtn");
+  const checkoutPixBtn = document.getElementById("checkoutPixBtn");
+  const checkoutLinkBtn = document.getElementById("checkoutLinkBtn");
+  const checkoutCardBtn = document.getElementById("checkoutCardBtn");
+  if (openCheckoutBtn) openCheckoutBtn.onclick = openCheckoutPage;
+  if (checkoutBackBtn) checkoutBackBtn.onclick = closeCheckoutPage;
+  if (checkoutPixBtn) checkoutPixBtn.onclick = () => { selectPaymentMethod("pix"); copyPixKey(); };
+  if (checkoutLinkBtn) checkoutLinkBtn.onclick = () => { selectPaymentMethod("link"); openPaymentLink(); };
+  if (checkoutCardBtn) checkoutCardBtn.onclick = () => { selectPaymentMethod("card"); openCardPayment(); };
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeCart();
       closeCardPayment();
+      closeCheckoutPage();
     }
   });
   document.getElementById("quoteForm").addEventListener("submit", (event) => {
@@ -719,6 +841,18 @@ function bindEvents() {
     alert("Solicitacao salva e enviada para o WhatsApp.");
     event.target.reset();
   });
+}
+
+function ensureCheckoutButton() {
+  if (document.getElementById("openCheckoutBtn")) return;
+  const address = document.getElementById("customerAddress");
+  if (!address) return;
+  const button = document.createElement("button");
+  button.className = "checkout-open-btn";
+  button.id = "openCheckoutBtn";
+  button.type = "button";
+  button.textContent = "Ir para checkout";
+  address.insertAdjacentElement("afterend", button);
 }
 
 function renderAll() {
@@ -766,9 +900,11 @@ function bindDataSync() {
 async function boot() {
   app = await loadAppData();
   app = normalizeTextEncoding(app);
+  loadCart();
   bindEvents();
   bindDataSync();
   renderAll();
+  if (window.location.hash === "#checkout" && cart.length) openCheckoutPage();
   initSimulator();
   initPlanner();
 }
