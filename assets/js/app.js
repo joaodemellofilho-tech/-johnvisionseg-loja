@@ -817,6 +817,45 @@ function validateCheckoutDetails() {
   return errors.length === 0;
 }
 
+async function lookupCheckoutCep() {
+  const zipInput = document.getElementById("checkoutCustomerZip");
+  const cityInput = document.getElementById("checkoutCustomerCity");
+  const addressInput = document.getElementById("checkoutCustomerAddress");
+  const validation = document.getElementById("checkoutValidation");
+  if (!zipInput || !cityInput || !addressInput) return;
+
+  const cep = zipInput.value.replace(/\D/g, "").slice(0, 8);
+  zipInput.value = cep.length > 5 ? `${cep.slice(0, 5)}-${cep.slice(5)}` : cep;
+  if (cep.length !== 8) return;
+
+  try {
+    if (validation) {
+      validation.textContent = "Buscando endereco pelo CEP...";
+      validation.classList.add("show");
+    }
+    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const data = await response.json();
+    if (!response.ok || data.erro) throw new Error("CEP nao encontrado.");
+
+    cityInput.value = [data.localidade, data.uf].filter(Boolean).join(" - ");
+    const addressParts = [data.logradouro, data.bairro].filter(Boolean);
+    if (addressParts.length) {
+      const current = addressInput.value.trim();
+      const autoAddress = addressParts.join(", ");
+      addressInput.value = current && !current.includes(autoAddress) ? `${autoAddress} | ${current}` : autoAddress;
+    }
+    if (validation) {
+      validation.textContent = "Endereco preenchido pelo CEP. Complete numero e complemento se necessario.";
+      validation.classList.add("show");
+    }
+  } catch (error) {
+    if (validation) {
+      validation.textContent = "Nao encontramos esse CEP. Preencha o endereco manualmente.";
+      validation.classList.add("show");
+    }
+  }
+}
+
 function runSelectedCheckoutPayment() {
   if (!validateCheckoutDetails()) return;
   if (selectedPaymentMethod === "pix") return copyPixKey();
@@ -932,12 +971,21 @@ function bindEvents() {
   const checkoutLinkBtn = document.getElementById("checkoutLinkBtn");
   const checkoutCardBtn = document.getElementById("checkoutCardBtn");
   const checkoutPrimaryPayBtn = document.getElementById("checkoutPrimaryPayBtn");
+  const checkoutZipInput = document.getElementById("checkoutCustomerZip");
   if (openCheckoutBtn) openCheckoutBtn.onclick = openCheckoutPage;
   if (checkoutBackBtn) checkoutBackBtn.onclick = closeCheckoutPage;
   if (checkoutPixBtn) checkoutPixBtn.onclick = () => selectPaymentMethod("pix");
   if (checkoutLinkBtn) checkoutLinkBtn.onclick = () => selectPaymentMethod("link");
   if (checkoutCardBtn) checkoutCardBtn.onclick = () => selectPaymentMethod("card");
   if (checkoutPrimaryPayBtn) checkoutPrimaryPayBtn.onclick = runSelectedCheckoutPayment;
+  if (checkoutZipInput) {
+    checkoutZipInput.addEventListener("input", () => {
+      const digits = checkoutZipInput.value.replace(/\D/g, "").slice(0, 8);
+      checkoutZipInput.value = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+      if (digits.length === 8) lookupCheckoutCep();
+    });
+    checkoutZipInput.addEventListener("blur", lookupCheckoutCep);
+  }
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeCart();
