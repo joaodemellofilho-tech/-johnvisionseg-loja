@@ -35,7 +35,13 @@ function renderMaintenanceMode() {
   const active = Boolean(app.settings.maintenanceMode);
   screen.hidden = !active;
   content.hidden = active;
+  screen.style.display = active ? "grid" : "";
+  content.style.display = active ? "none" : "";
   document.body.classList.toggle("maintenance-active", active);
+  if (active) {
+    closeCart();
+    closeCheckoutPage();
+  }
   const title = document.getElementById("maintenanceTitle");
   const message = document.getElementById("maintenanceMessage");
   const whatsapp = document.getElementById("maintenanceWhatsapp");

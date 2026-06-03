@@ -61,6 +61,7 @@ body {
 }
 a { text-decoration: none; color: inherit; }
 button, input, select, textarea { font: inherit; }
+[hidden] { display: none !important; }
 
 /* ─── ANIMATED GRID BACKGROUND ──────────────────────────── */
 body::before {
@@ -2910,6 +2911,54 @@ main#conteudo {
 }
 #storeContent {
   display: block;
+}
+body.maintenance-active {
+  min-height: 100vh;
+}
+body.maintenance-active #storeContent,
+body.maintenance-active .cart-drawer,
+body.maintenance-active .cart-overlay,
+body.maintenance-active .customer-drawer,
+body.maintenance-active .auth-modal,
+body.maintenance-active .payment-modal,
+body.maintenance-active .checkout-page,
+body.maintenance-active .whatsapp-float {
+  display: none !important;
+}
+body.maintenance-active .topbar.store-topbar,
+body.maintenance-active .mobile-nav {
+  display: none !important;
+}
+.maintenance-screen {
+  min-height: 78vh;
+  width: min(920px, calc(100% - 32px));
+  margin: 48px auto 96px;
+  place-items: center;
+  text-align: center;
+}
+body.maintenance-active .maintenance-screen {
+  display: grid !important;
+}
+.maintenance-screen > div {
+  width: 100%;
+  padding: 42px;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 18px;
+  background: rgba(17, 24, 39, .86);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .32);
+}
+.maintenance-screen h1 {
+  margin: 12px 0;
+  color: #f8fafc;
+  font-size: clamp(2.4rem, 6vw, 4.8rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+.maintenance-screen p {
+  max-width: 620px;
+  margin: 0 auto 24px;
+  color: #94a3b8;
+  font-size: 1.05rem;
 }
 .store-catalog {
   width: min(1200px, calc(100% - 32px));
