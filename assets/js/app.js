@@ -678,10 +678,16 @@ function buildOrderPayload(status = "Novo") {
   const emailInput = document.getElementById("checkoutCustomerEmail");
   const zipInput = document.getElementById("checkoutCustomerZip");
   const cityInput = document.getElementById("checkoutCustomerCity");
+  const numberInput = document.getElementById("checkoutCustomerNumber");
+  const apartmentInput = document.getElementById("checkoutCustomerApartment");
+  const condoInput = document.getElementById("checkoutCustomerCondo");
   const name = nameInput?.value.trim() || "Cliente";
   const phone = phoneInput?.value.trim() || "";
   const address = [
     addressInput?.value.trim() || "",
+    numberInput?.value.trim() ? `Numero: ${numberInput.value.trim()}` : "",
+    apartmentInput?.value.trim() ? `Apartamento: ${apartmentInput.value.trim()}` : "",
+    condoInput?.value.trim() ? `Condominio: ${condoInput.value.trim()}` : "",
     zipInput?.value.trim() ? `CEP: ${zipInput.value.trim()}` : "",
     cityInput?.value.trim() || ""
   ].filter(Boolean).join(" | ");
