@@ -3013,6 +3013,83 @@ body.maintenance-active .maintenance-screen {
   padding: 70px 0 96px;
   background: transparent;
 }
+.welcome-tabs-section {
+  width: min(1200px, calc(100% - 32px));
+  margin: 54px auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(320px, 1.1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+.welcome-tabs-copy,
+.welcome-panel {
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 18px;
+  background: rgba(17, 24, 39, .82);
+  padding: 24px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .28);
+}
+.welcome-kicker,
+.welcome-panel span {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 10px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(124, 77, 255, .16);
+  color: #c4b5fd;
+  font-size: .76rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.welcome-tabs-copy h2 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+.welcome-tabs-copy p,
+.welcome-panel p {
+  margin: 12px 0 0;
+  color: #94a3b8;
+  line-height: 1.65;
+}
+.welcome-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-self: end;
+  grid-column: 1;
+}
+.welcome-tabs button {
+  min-height: 46px;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, .72);
+  color: #cbd5e1;
+  font-weight: 900;
+  cursor: pointer;
+}
+.welcome-tabs button.active {
+  border-color: rgba(124, 77, 255, .75);
+  background: rgba(124, 77, 255, .24);
+  color: #fff;
+}
+.welcome-panel {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: grid;
+  align-content: center;
+  min-height: 220px;
+}
+.welcome-panel h3 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  line-height: 1.1;
+}
 .promo-carousel {
   margin: 0 0 54px;
 }
@@ -3696,6 +3773,14 @@ textarea {
   .storefront .products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .welcome-tabs-section {
+    grid-template-columns: 1fr;
+  }
+  .welcome-tabs,
+  .welcome-panel {
+    grid-column: auto;
+    grid-row: auto;
+  }
   .promo-slide {
     grid-template-columns: 1fr;
   }
@@ -3731,6 +3816,13 @@ textarea {
   .store-catalog {
     width: calc(100% - 24px);
     padding-top: 42px;
+  }
+  .welcome-tabs-section {
+    width: calc(100% - 24px);
+    margin-top: 32px;
+  }
+  .welcome-tabs {
+    grid-template-columns: 1fr;
   }
   .promo-carousel-head {
     align-items: flex-start;

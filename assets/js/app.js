@@ -17,6 +17,23 @@ const cartOverlay = document.getElementById("cartOverlay");
 const checkoutPage = document.getElementById("checkoutPage");
 let promoSlideIndex = 0;
 let promoTimer = null;
+const welcomeMessages = {
+  intro: {
+    badge: "Loja online",
+    title: "Ola, seja bem-vindo.",
+    text: "Encontre cameras, CFTV e acessorios de seguranca com atendimento para escolher o equipamento certo."
+  },
+  buy: {
+    badge: "Compra guiada",
+    title: "Monte o carrinho e finalize no checkout.",
+    text: "Adicione os produtos, informe seus dados de entrega e escolha Pix, cartao ou checkout Mercado Pago."
+  },
+  support: {
+    badge: "Suporte tecnico",
+    title: "Precisa de ajuda para escolher?",
+    text: "Fale com a John@VisionSeg para definir camera, alcance, armazenamento e instalacao ideal para seu ambiente."
+  }
+};
 
 function applySettings() {
   document.querySelectorAll("[data-setting]").forEach((el) => {
@@ -95,6 +112,21 @@ function renderCategories() {
       ...categories.map((category) => `<button type="button" data-category="${escapeHtml(category)}">${escapeHtml(category)}</button>`)
     ].join("");
   }
+}
+
+function setWelcomeTab(tab = "intro") {
+  const message = welcomeMessages[tab] || welcomeMessages.intro;
+  const badge = document.getElementById("welcomePanelBadge");
+  const title = document.getElementById("welcomePanelTitle");
+  const text = document.getElementById("welcomePanelText");
+  if (badge) badge.textContent = message.badge;
+  if (title) title.textContent = message.title;
+  if (text) text.textContent = message.text;
+  document.querySelectorAll("[data-welcome-tab]").forEach((button) => {
+    const active = button.dataset.welcomeTab === tab;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", active ? "true" : "false");
+  });
 }
 
 function getPromoProducts() {
@@ -965,6 +997,9 @@ function bindEvents() {
   const promoNext = document.getElementById("promoNext");
   if (promoPrev) promoPrev.onclick = () => nextPromoSlide(-1);
   if (promoNext) promoNext.onclick = () => nextPromoSlide(1);
+  document.querySelectorAll("[data-welcome-tab]").forEach((button) => {
+    button.addEventListener("click", () => setWelcomeTab(button.dataset.welcomeTab));
+  });
   document.getElementById("copyPixBtn").onclick = () => { selectPaymentMethod("pix"); copyPixKey(); };
   document.getElementById("paymentLinkBtn").onclick = () => { selectPaymentMethod("link"); openPaymentLink(); };
   const cardPaymentBtn = document.getElementById("cardPaymentBtn");
@@ -1040,6 +1075,7 @@ function renderAll() {
   renderPortfolio();
   renderTestimonials();
   renderCategories();
+  setWelcomeTab("intro");
   renderPromoCarousel();
   renderProducts();
   renderCart();

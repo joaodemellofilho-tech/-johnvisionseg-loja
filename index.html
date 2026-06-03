@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=25">
+<link rel="stylesheet" href="assets/css/style.css?v=26">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -87,6 +87,7 @@
     <a href="admin/index.html">Painel</a>
   </nav>
   <nav class="simple-nav" aria-label="Navegacao principal simplificada">
+    <a href="#boas-vindas">Boas-vindas</a>
     <a href="#produtos">Produtos</a>
     <a href="#sobre">Sobre</a>
     <a href="#contato">Suporte</a>
@@ -372,6 +373,24 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <section id="boas-vindas" class="welcome-tabs-section" aria-labelledby="welcomeTitle">
+    <div class="welcome-tabs-copy">
+      <span class="welcome-kicker">Atendimento John@VisionSeg</span>
+      <h2 id="welcomeTitle">Bem-vindo a sua loja de seguranca</h2>
+      <p>Escolha seus produtos, monte o carrinho e finalize pelo checkout com acompanhamento do pedido.</p>
+    </div>
+    <div class="welcome-tabs" role="tablist" aria-label="Mensagens de boas-vindas">
+      <button class="active" id="welcomeTabIntro" type="button" role="tab" aria-selected="true" aria-controls="welcomePanel" data-welcome-tab="intro">Bem-vindo</button>
+      <button id="welcomeTabBuy" type="button" role="tab" aria-selected="false" aria-controls="welcomePanel" data-welcome-tab="buy">Como comprar</button>
+      <button id="welcomeTabSupport" type="button" role="tab" aria-selected="false" aria-controls="welcomePanel" data-welcome-tab="support">Suporte</button>
+    </div>
+    <article id="welcomePanel" class="welcome-panel" role="tabpanel" aria-live="polite">
+      <span id="welcomePanelBadge">Loja online</span>
+      <h3 id="welcomePanelTitle">Ola, seja bem-vindo.</h3>
+      <p id="welcomePanelText">Encontre cameras, CFTV e acessorios de seguranca com atendimento para escolher o equipamento certo.</p>
+    </article>
   </section>
 
   <section id="produtos" class="section shop-section store-catalog">
@@ -948,11 +967,11 @@
   <p>&copy; 2026 <span data-setting="companyName">John@VisionSeg Cameras</span> - Seguranca eletronica profissional. Todos os direitos reservados.</p>
 </footer>
 
-<script src="assets/js/firebase-config.js?v=25"></script>
+<script src="assets/js/firebase-config.js?v=26"></script>
 <script src="https://sdk.mercadopago.com/js/v2"></script>
-<script src="assets/js/app-data.js?v=25"></script>
-<script src="assets/js/app.js?v=25"></script>
-<script src="assets/js/customer-auth.js?v=25"></script>
+<script src="assets/js/app-data.js?v=26"></script>
+<script src="assets/js/app.js?v=26"></script>
+<script src="assets/js/customer-auth.js?v=26"></script>
 
 <!-- Particle system -->
 <script>

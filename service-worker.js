@@ -1,4 +1,4 @@
-const CACHE_NAME = "johnvisionseg-pro-storefront-v25";
+const CACHE_NAME = "johnvisionseg-pro-storefront-v26";
 const ASSETS = [
   "./",
   "./index.html",
