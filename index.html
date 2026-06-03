@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=18">
+<link rel="stylesheet" href="assets/css/style.css?v=19">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -798,57 +798,88 @@
 <main id="checkoutPage" class="checkout-page" hidden>
   <section class="checkout-shell" aria-labelledby="checkoutTitle">
     <div class="checkout-top">
-      <button id="checkoutBackBtn" class="checkout-back" type="button">Voltar para loja</button>
       <div>
-        <span class="checkout-kicker">Pagamento seguro</span>
+        <button id="checkoutBackBtn" class="checkout-back" type="button">Voltar para loja</button>
+        <span class="checkout-kicker">Compra segura</span>
         <h1 id="checkoutTitle">Checkout John@VisionSeg</h1>
-        <p>Confira seus produtos, preencha seus dados e escolha a forma de pagamento.</p>
+        <p>Finalize seu pedido com dados de entrega, contato e pagamento em um unico lugar.</p>
       </div>
+      <ol class="checkout-steps" aria-label="Etapas do checkout">
+        <li class="active"><span>1</span>Dados</li>
+        <li><span>2</span>Entrega</li>
+        <li><span>3</span>Pagamento</li>
+      </ol>
     </div>
 
     <div class="checkout-grid">
-      <section class="checkout-panel">
-        <div class="checkout-section-head">
-          <strong>Dados do cliente</strong>
-          <span>Usados para identificar o pedido</span>
-        </div>
-        <div class="checkout-form-grid">
-          <label>Nome completo
-            <input id="checkoutCustomerName" autocomplete="name" placeholder="Seu nome">
-          </label>
-          <label>WhatsApp
-            <input id="checkoutCustomerPhone" autocomplete="tel" placeholder="(11) 99999-9999">
-          </label>
-          <label class="checkout-wide">E-mail
-            <input id="checkoutCustomerEmail" autocomplete="email" placeholder="seu@email.com">
-          </label>
-          <label class="checkout-wide">Endereco / observacao
-            <textarea id="checkoutCustomerAddress" placeholder="Endereco de entrega ou observacao do pedido"></textarea>
-          </label>
-        </div>
-      </section>
+      <div class="checkout-main">
+        <section class="checkout-panel checkout-panel-numbered">
+          <span class="checkout-panel-number">1</span>
+          <div class="checkout-section-head">
+            <strong>Contato do cliente</strong>
+            <span>Para confirmacao do pedido</span>
+          </div>
+          <div class="checkout-form-grid">
+            <label>Nome completo
+              <input id="checkoutCustomerName" autocomplete="name" placeholder="Seu nome">
+            </label>
+            <label>WhatsApp
+              <input id="checkoutCustomerPhone" autocomplete="tel" placeholder="(11) 99999-9999">
+            </label>
+            <label class="checkout-wide">E-mail para comprovante
+              <input id="checkoutCustomerEmail" autocomplete="email" placeholder="seu@email.com">
+            </label>
+          </div>
+          <p id="checkoutValidation" class="checkout-validation" aria-live="polite"></p>
+        </section>
 
-      <section class="checkout-panel checkout-payment-panel">
-        <div class="checkout-section-head">
-          <strong>Forma de pagamento</strong>
-          <span>Mercado Pago, cartao ou Pix</span>
-        </div>
-        <div class="payment-methods checkout-payment-methods">
-          <button class="payment-method-card" id="checkoutPixBtn" type="button" data-payment-method="pix">
-            <strong>Pix</strong>
-            <span>Copia a chave Pix</span>
-          </button>
-          <button class="payment-method-card" id="checkoutCardBtn" type="button" data-payment-method="card">
-            <strong>Cartao</strong>
-            <span>Mercado Livre / Mercado Pago</span>
-          </button>
-          <button class="payment-method-card" id="checkoutLinkBtn" type="button" data-payment-method="link">
-            <strong>Link</strong>
-            <span>Checkout Mercado Pago</span>
-          </button>
-        </div>
-        <p id="checkoutPaymentInfo" class="payment-info">Adicione produtos ao carrinho para pagar.</p>
-      </section>
+        <section class="checkout-panel checkout-panel-numbered">
+          <span class="checkout-panel-number">2</span>
+          <div class="checkout-section-head">
+            <strong>Entrega</strong>
+            <span>Frete e prazo combinados apos o pedido</span>
+          </div>
+          <div class="checkout-form-grid">
+            <label>CEP
+              <input id="checkoutCustomerZip" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000">
+            </label>
+            <label>Cidade / UF
+              <input id="checkoutCustomerCity" autocomplete="address-level2" placeholder="Cidade - UF">
+            </label>
+            <label class="checkout-wide">Endereco / observacao
+              <textarea id="checkoutCustomerAddress" placeholder="Rua, numero, bairro, complemento ou observacao do pedido"></textarea>
+            </label>
+          </div>
+          <div class="checkout-delivery-choice">
+            <span>Modalidade</span>
+            <strong>Entrega/instalacao a combinar</strong>
+          </div>
+        </section>
+
+        <section class="checkout-panel checkout-panel-numbered checkout-payment-panel">
+          <span class="checkout-panel-number">3</span>
+          <div class="checkout-section-head">
+            <strong>Pagamento</strong>
+            <span>Escolha como quer finalizar</span>
+          </div>
+          <div class="payment-methods checkout-payment-methods">
+            <button class="payment-method-card" id="checkoutLinkBtn" type="button" data-payment-method="link">
+              <strong>Checkout Mercado Pago</strong>
+              <span>Cartao, Pix e boleto quando disponivel</span>
+            </button>
+            <button class="payment-method-card" id="checkoutCardBtn" type="button" data-payment-method="card">
+              <strong>Cartao direto</strong>
+              <span>Formulario seguro Mercado Pago</span>
+            </button>
+            <button class="payment-method-card" id="checkoutPixBtn" type="button" data-payment-method="pix">
+              <strong>Pix manual</strong>
+              <span>Copia a chave configurada</span>
+            </button>
+          </div>
+          <p id="checkoutPaymentInfo" class="payment-info">Adicione produtos ao carrinho para pagar.</p>
+          <button id="checkoutPrimaryPayBtn" class="checkout-primary-pay" type="button">Finalizar pagamento</button>
+        </section>
+      </div>
 
       <aside class="checkout-summary">
         <div class="checkout-section-head">
@@ -860,6 +891,11 @@
           <div><span>Subtotal</span><strong id="checkoutSubtotal">R$ 0,00</strong></div>
           <div><span>Entrega</span><strong>A combinar</strong></div>
           <div class="checkout-total-line"><span>Total</span><strong id="checkoutTotal">R$ 0,00</strong></div>
+        </div>
+        <div class="checkout-security">
+          <span>Ambiente protegido</span>
+          <span>Pagamento via Mercado Pago</span>
+          <span>Pedido salvo no painel</span>
         </div>
       </aside>
     </div>
@@ -886,11 +922,11 @@
   <p>&copy; 2026 <span data-setting="companyName">John@VisionSeg Cameras</span> - Seguranca eletronica profissional. Todos os direitos reservados.</p>
 </footer>
 
-<script src="assets/js/firebase-config.js?v=18"></script>
+<script src="assets/js/firebase-config.js?v=19"></script>
 <script src="https://sdk.mercadopago.com/js/v2"></script>
-<script src="assets/js/app-data.js?v=18"></script>
-<script src="assets/js/app.js?v=18"></script>
-<script src="assets/js/customer-auth.js?v=18"></script>
+<script src="assets/js/app-data.js?v=19"></script>
+<script src="assets/js/app.js?v=19"></script>
+<script src="assets/js/customer-auth.js?v=19"></script>
 
 <!-- Particle system -->
 <script>

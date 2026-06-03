@@ -347,6 +347,7 @@ function renderPaymentOptions() {
   const checkoutPixBtn = document.getElementById("checkoutPixBtn");
   const checkoutLinkBtn = document.getElementById("checkoutLinkBtn");
   const checkoutCardBtn = document.getElementById("checkoutCardBtn");
+  const checkoutPrimaryPayBtn = document.getElementById("checkoutPrimaryPayBtn");
   const info = document.getElementById("paymentInfo");
   const checkoutInfo = document.getElementById("checkoutPaymentInfo");
   if (!pixBtn || !linkBtn || !info || !app?.settings) return;
@@ -384,6 +385,14 @@ function renderPaymentOptions() {
   if (!cart.length) details.push("Adicione produtos ao carrinho para pagar");
   info.textContent = details.length ? details.join(" | ") : "Configure Pix ou link de pagamento no painel.";
   if (checkoutInfo) checkoutInfo.textContent = info.textContent;
+  if (checkoutPrimaryPayBtn) {
+    checkoutPrimaryPayBtn.disabled = !cart.length || (selectedPaymentMethod === "pix" && !hasPix) || (selectedPaymentMethod === "card" && !hasCardPayment) || (selectedPaymentMethod === "link" && !hasLink);
+    checkoutPrimaryPayBtn.textContent = selectedPaymentMethod === "pix"
+      ? "Copiar Pix"
+      : selectedPaymentMethod === "card"
+        ? "Pagar com cartao"
+        : "Pagar pelo Mercado Pago";
+  }
 }
 
 function setPaymentCardState(button, enabled, title, subtitle) {
@@ -394,6 +403,7 @@ function setPaymentCardState(button, enabled, title, subtitle) {
 function selectPaymentMethod(method) {
   selectedPaymentMethod = method || "link";
   updatePaymentMethodSelection();
+  renderPaymentOptions();
 }
 
 function updatePaymentMethodSelection() {
@@ -587,9 +597,15 @@ function buildOrderPayload(status = "Novo") {
   const phoneInput = isCheckoutVisible() ? document.getElementById("checkoutCustomerPhone") : document.getElementById("customerPhone");
   const addressInput = isCheckoutVisible() ? document.getElementById("checkoutCustomerAddress") : document.getElementById("customerAddress");
   const emailInput = document.getElementById("checkoutCustomerEmail");
+  const zipInput = document.getElementById("checkoutCustomerZip");
+  const cityInput = document.getElementById("checkoutCustomerCity");
   const name = nameInput?.value.trim() || "Cliente";
   const phone = phoneInput?.value.trim() || "";
-  const address = addressInput?.value.trim() || "";
+  const address = [
+    addressInput?.value.trim() || "",
+    zipInput?.value.trim() ? `CEP: ${zipInput.value.trim()}` : "",
+    cityInput?.value.trim() || ""
+  ].filter(Boolean).join(" | ");
   const email = emailInput?.value.trim() || "";
   const orderItems = cart.map((item) => {
     const product = app.products.find((productItem) => productItem.id === item.id) || {};
@@ -705,6 +721,30 @@ function isCheckoutVisible() {
   return Boolean(checkoutPage && !checkoutPage.hidden);
 }
 
+function validateCheckoutDetails() {
+  if (!isCheckoutVisible()) return true;
+  const name = document.getElementById("checkoutCustomerName")?.value.trim() || "";
+  const phone = document.getElementById("checkoutCustomerPhone")?.value.replace(/\D/g, "") || "";
+  const email = document.getElementById("checkoutCustomerEmail")?.value.trim() || "";
+  const message = document.getElementById("checkoutValidation");
+  const errors = [];
+  if (name.length < 3) errors.push("Informe o nome completo.");
+  if (phone.length < 10) errors.push("Informe um WhatsApp valido.");
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Confira o e-mail.");
+  if (message) {
+    message.textContent = errors.join(" ");
+    message.classList.toggle("show", errors.length > 0);
+  }
+  return errors.length === 0;
+}
+
+function runSelectedCheckoutPayment() {
+  if (!validateCheckoutDetails()) return;
+  if (selectedPaymentMethod === "pix") return copyPixKey();
+  if (selectedPaymentMethod === "card") return openCardPayment();
+  return openPaymentLink();
+}
+
 function renderCheckoutPage() {
   const itemsTarget = document.getElementById("checkoutItems");
   if (!itemsTarget) return;
@@ -808,11 +848,13 @@ function bindEvents() {
   const checkoutPixBtn = document.getElementById("checkoutPixBtn");
   const checkoutLinkBtn = document.getElementById("checkoutLinkBtn");
   const checkoutCardBtn = document.getElementById("checkoutCardBtn");
+  const checkoutPrimaryPayBtn = document.getElementById("checkoutPrimaryPayBtn");
   if (openCheckoutBtn) openCheckoutBtn.onclick = openCheckoutPage;
   if (checkoutBackBtn) checkoutBackBtn.onclick = closeCheckoutPage;
-  if (checkoutPixBtn) checkoutPixBtn.onclick = () => { selectPaymentMethod("pix"); copyPixKey(); };
-  if (checkoutLinkBtn) checkoutLinkBtn.onclick = () => { selectPaymentMethod("link"); openPaymentLink(); };
-  if (checkoutCardBtn) checkoutCardBtn.onclick = () => { selectPaymentMethod("card"); openCardPayment(); };
+  if (checkoutPixBtn) checkoutPixBtn.onclick = () => selectPaymentMethod("pix");
+  if (checkoutLinkBtn) checkoutLinkBtn.onclick = () => selectPaymentMethod("link");
+  if (checkoutCardBtn) checkoutCardBtn.onclick = () => selectPaymentMethod("card");
+  if (checkoutPrimaryPayBtn) checkoutPrimaryPayBtn.onclick = runSelectedCheckoutPayment;
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeCart();
