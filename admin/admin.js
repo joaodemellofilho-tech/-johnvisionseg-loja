@@ -331,14 +331,18 @@ function renderSettings() {
   });
 }
 
-function saveSettings() {
+async function saveSettings() {
   Object.keys(app.settings).forEach((key) => {
     const element = document.getElementById(key);
     if (!element) return;
-    app.settings[key] = element.type === "checkbox" ? element.checked : element.value;
+    app.settings[key] = element.type === "checkbox" ? element.checked : element.value.trim();
   });
-  saveApp(app);
+  app.settings.mercadoPagoMaxInstallments = Math.max(1, Math.min(24, Number(app.settings.mercadoPagoMaxInstallments || 10)));
+  const savedCloud = await saveApp(app);
   notice();
+  if (!savedCloud) {
+    alert("Salvei neste navegador, mas o Firestore recusou a gravação. Verifique login admin/regras antes de recarregar.");
+  }
 }
 
 function toggleMaintenanceMode() {

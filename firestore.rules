@@ -7,7 +7,10 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn()
-        && exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
+        && (
+          request.auth.token.email == "joao.demellofilho@gmail.com"
+          || exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
+        );
     }
 
     match /johnvisionseg_sites/{docId} {

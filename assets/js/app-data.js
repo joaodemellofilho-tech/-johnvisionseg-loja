@@ -201,7 +201,7 @@ function saveApp(data) {
   const cleanData = mergeAppData(data);
   localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(cleanData));
   localStorage.setItem(APP_SYNC_KEY, String(Date.now()));
-  saveAppCloud(cleanData);
+  return saveAppCloud(cleanData);
 }
 
 async function saveAppCloud(data) {
