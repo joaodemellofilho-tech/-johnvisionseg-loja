@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=19">
+<link rel="stylesheet" href="assets/css/style.css?v=20">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -375,6 +375,23 @@
   </section>
 
   <section id="produtos" class="section shop-section store-catalog">
+    <section class="promo-carousel" aria-label="Promocoes em destaque">
+      <div class="promo-carousel-head">
+        <div>
+          <span class="promo-kicker">Ofertas relampago</span>
+          <h2>Promocoes da Semana</h2>
+        </div>
+        <div class="promo-controls">
+          <button id="promoPrev" type="button" aria-label="Promocao anterior">&lt;</button>
+          <button id="promoNext" type="button" aria-label="Proxima promocao">&gt;</button>
+        </div>
+      </div>
+      <div class="promo-carousel-shell">
+        <div id="promoCarouselTrack" class="promo-carousel-track"></div>
+      </div>
+      <div id="promoDots" class="promo-dots" aria-label="Indicadores do carrossel"></div>
+    </section>
+
     <div class="store-toolbar">
       <div>
         <span class="eyebrow">Catalogo online</span>
@@ -922,11 +939,11 @@
   <p>&copy; 2026 <span data-setting="companyName">John@VisionSeg Cameras</span> - Seguranca eletronica profissional. Todos os direitos reservados.</p>
 </footer>
 
-<script src="assets/js/firebase-config.js?v=19"></script>
+<script src="assets/js/firebase-config.js?v=20"></script>
 <script src="https://sdk.mercadopago.com/js/v2"></script>
-<script src="assets/js/app-data.js?v=19"></script>
-<script src="assets/js/app.js?v=19"></script>
-<script src="assets/js/customer-auth.js?v=19"></script>
+<script src="assets/js/app-data.js?v=20"></script>
+<script src="assets/js/app.js?v=20"></script>
+<script src="assets/js/customer-auth.js?v=20"></script>
 
 <!-- Particle system -->
 <script>

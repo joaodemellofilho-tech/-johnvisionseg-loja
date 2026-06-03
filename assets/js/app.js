@@ -15,6 +15,8 @@ const categoryStrip = document.getElementById("categoryStrip");
 const cartDrawer = document.getElementById("cartDrawer");
 const cartOverlay = document.getElementById("cartOverlay");
 const checkoutPage = document.getElementById("checkoutPage");
+let promoSlideIndex = 0;
+let promoTimer = null;
 
 function applySettings() {
   document.querySelectorAll("[data-setting]").forEach((el) => {
@@ -89,6 +91,68 @@ function renderCategories() {
   }
 }
 
+function getPromoProducts() {
+  return [...app.products]
+    .filter((product) => isProductAvailable(product))
+    .sort((a, b) => Number(b.stock || 0) - Number(a.stock || 0))
+    .slice(0, 5);
+}
+
+function renderPromoCarousel() {
+  const track = document.getElementById("promoCarouselTrack");
+  const dots = document.getElementById("promoDots");
+  if (!track || !dots || !app?.products?.length) return;
+  const promos = getPromoProducts();
+  if (!promos.length) {
+    track.innerHTML = '<div class="empty-state">Nenhuma promocao disponivel.</div>';
+    dots.innerHTML = "";
+    return;
+  }
+  if (promoSlideIndex >= promos.length) promoSlideIndex = 0;
+  track.innerHTML = promos.map((product, index) => {
+    const oldPrice = Number(product.price || 0) * 1.18;
+    const badge = index === 0 ? "Mais vendido" : index === 1 ? "Oferta especial" : "Preco promocional";
+    return `
+      <article class="promo-slide ${index === promoSlideIndex ? "active" : ""}" aria-hidden="${index === promoSlideIndex ? "false" : "true"}">
+        <div class="promo-copy">
+          <span class="promo-badge">${escapeHtml(badge)}</span>
+          <h3>${escapeHtml(product.name)}</h3>
+          <p>${escapeHtml(product.desc || "Produto selecionado para promocao da semana.")}</p>
+          <div class="promo-price-row">
+            <span class="promo-old-price">${brl(oldPrice)}</span>
+            <strong>${brl(product.price)}</strong>
+          </div>
+          <div class="promo-actions">
+            <button type="button" onclick="addToCart(${Number(product.id)})">Adicionar ao carrinho</button>
+            <button type="button" class="ghost" onclick="focusProduct(${Number(product.id)})">Ver produto</button>
+          </div>
+        </div>
+        <div class="promo-media">
+          <img src="${escapeHtml(getProductImages(product)[0])}" alt="${escapeHtml(product.name)}" loading="lazy">
+        </div>
+      </article>
+    `;
+  }).join("");
+  dots.innerHTML = promos.map((_, index) => `<button class="${index === promoSlideIndex ? "active" : ""}" type="button" aria-label="Ver promocao ${index + 1}" onclick="setPromoSlide(${index})"></button>`).join("");
+}
+
+function setPromoSlide(index) {
+  const promos = getPromoProducts();
+  if (!promos.length) return;
+  promoSlideIndex = (Number(index) + promos.length) % promos.length;
+  renderPromoCarousel();
+  restartPromoAutoplay();
+}
+
+function nextPromoSlide(delta = 1) {
+  setPromoSlide(promoSlideIndex + delta);
+}
+
+function restartPromoAutoplay() {
+  if (promoTimer) clearInterval(promoTimer);
+  promoTimer = setInterval(() => nextPromoSlide(1), 6500);
+}
+
 function renderProducts() {
   const query = search.value.toLowerCase().trim();
   const category = filter.value;
@@ -109,7 +173,7 @@ function renderProducts() {
   }
 
   grid.innerHTML = products.length ? products.map((product) => `
-    <article class="product-card ${!isProductAvailable(product) ? "is-unavailable" : ""}">
+    <article class="product-card ${!isProductAvailable(product) ? "is-unavailable" : ""}" data-product-id="${Number(product.id)}">
       <div class="product-img has-photo">
         <img src="${escapeHtml(getProductImages(product)[0])}" alt="${escapeHtml(product.name)}" loading="lazy">
       </div>
@@ -124,6 +188,15 @@ function renderProducts() {
       </div>
     </article>
   `).join("") : '<div class="empty-state">Nenhum produto encontrado para essa busca.</div>';
+}
+
+function focusProduct(id) {
+  closeCart();
+  const card = document.querySelector(`[data-product-id="${Number(id)}"]`);
+  if (!card) return;
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.add("promo-focus");
+  setTimeout(() => card.classList.remove("promo-focus"), 1600);
 }
 
 function sortProductList(products) {
@@ -837,6 +910,10 @@ function bindEvents() {
     });
   }
   if (sortProducts) sortProducts.onchange = renderProducts;
+  const promoPrev = document.getElementById("promoPrev");
+  const promoNext = document.getElementById("promoNext");
+  if (promoPrev) promoPrev.onclick = () => nextPromoSlide(-1);
+  if (promoNext) promoNext.onclick = () => nextPromoSlide(1);
   document.getElementById("copyPixBtn").onclick = () => { selectPaymentMethod("pix"); copyPixKey(); };
   document.getElementById("paymentLinkBtn").onclick = () => { selectPaymentMethod("link"); openPaymentLink(); };
   const cardPaymentBtn = document.getElementById("cardPaymentBtn");
@@ -903,6 +980,7 @@ function renderAll() {
   renderPortfolio();
   renderTestimonials();
   renderCategories();
+  renderPromoCarousel();
   renderProducts();
   renderCart();
 }
@@ -914,6 +992,7 @@ function reloadStorefrontFromLocal() {
     app = normalizeTextEncoding(mergeAppData(JSON.parse(saved)));
     renderMaintenanceMode();
     renderCategories();
+    renderPromoCarousel();
     renderProducts();
     renderPaymentOptions();
   } catch (error) {
@@ -946,6 +1025,7 @@ async function boot() {
   bindEvents();
   bindDataSync();
   renderAll();
+  restartPromoAutoplay();
   if (window.location.hash === "#checkout" && cart.length) openCheckoutPage();
   initSimulator();
   initPlanner();

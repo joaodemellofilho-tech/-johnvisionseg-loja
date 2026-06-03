@@ -2917,6 +2917,179 @@ main#conteudo {
   padding: 70px 0 96px;
   background: transparent;
 }
+.promo-carousel {
+  margin: 0 0 54px;
+}
+.promo-carousel-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+.promo-kicker {
+  display: block;
+  margin-bottom: 8px;
+  color: #a78bfa;
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.promo-carousel h2 {
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: clamp(2rem, 4vw, 2.7rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+.promo-controls {
+  display: flex;
+  gap: 10px;
+}
+.promo-controls button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 999px;
+  background: rgba(17, 24, 39, .82);
+  color: #f8fafc;
+  font-size: 1.2rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.promo-carousel-shell {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(124, 77, 255, .22), rgba(56, 189, 248, .08)),
+    rgba(17, 24, 39, .82);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .32);
+}
+.promo-carousel-track {
+  position: relative;
+  min-height: 360px;
+}
+.promo-slide {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+  gap: 28px;
+  align-items: center;
+  padding: 30px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(24px);
+  transition: opacity .35s ease, transform .35s ease;
+}
+.promo-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.promo-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 14px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, .14);
+  color: #86efac;
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.promo-copy h3 {
+  max-width: 620px;
+  margin: 0;
+  color: #f8fafc;
+  font-size: clamp(2rem, 5vw, 3.8rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+.promo-copy p {
+  max-width: 560px;
+  margin: 16px 0 0;
+  color: #cbd5e1;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.promo-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-top: 22px;
+}
+.promo-old-price {
+  color: #94a3b8;
+  font-size: 1rem;
+  text-decoration: line-through;
+}
+.promo-price-row strong {
+  color: #fff;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
+}
+.promo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.promo-actions button {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #7c4dff;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+.promo-actions button.ghost {
+  border: 1px solid rgba(148, 163, 184, .22);
+  background: rgba(15, 23, 42, .66);
+}
+.promo-media {
+  min-height: 286px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(2, 6, 23, .48);
+}
+.promo-media img {
+  width: 100%;
+  height: 100%;
+  min-height: 286px;
+  object-fit: cover;
+  opacity: .96;
+}
+.promo-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.promo-dots button {
+  width: 28px;
+  height: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, .28);
+  cursor: pointer;
+}
+.promo-dots button.active {
+  width: 42px;
+  background: #7c4dff;
+}
+.product-card.promo-focus {
+  border-color: rgba(34, 197, 94, .9);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, .32), 0 22px 55px rgba(0, 0, 0, .34);
+}
 .store-toolbar {
   display: block;
   margin: 0 0 36px;
@@ -3427,6 +3600,15 @@ textarea {
   .storefront .products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .promo-slide {
+    grid-template-columns: 1fr;
+  }
+  .promo-carousel-track {
+    min-height: 620px;
+  }
+  .promo-media {
+    min-height: 260px;
+  }
   .checkout-grid {
     grid-template-columns: 1fr;
   }
@@ -3453,6 +3635,25 @@ textarea {
   .store-catalog {
     width: calc(100% - 24px);
     padding-top: 42px;
+  }
+  .promo-carousel-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .promo-slide {
+    padding: 18px;
+  }
+  .promo-carousel-track {
+    min-height: 650px;
+  }
+  .promo-copy h3 {
+    font-size: 2rem;
+  }
+  .promo-actions {
+    flex-direction: column;
+  }
+  .promo-actions button {
+    width: 100%;
   }
   .storefront .products-grid {
     grid-template-columns: 1fr;
