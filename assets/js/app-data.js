@@ -18,6 +18,26 @@ const defaultApp = {
     heroSubtitle: "Cameras PTZ, kits CFTV, alarmes e equipamentos de seguranca com atendimento tecnico e pedido pelo WhatsApp.",
     aboutText: "A John@VisionSeg Cameras oferece equipamentos de seguranca eletronica, orientacao para escolha do produto e suporte para projetos residenciais, comerciais e empresariais."
   },
+  navigationMenus: [
+    { label: "Produtos", href: "#produtos", children: [
+      { label: "Cameras PTZ", href: "#produtos" },
+      { label: "Kits CFTV", href: "#produtos" },
+      { label: "Gravadores / DVR", href: "#produtos" },
+      { label: "Alarmes e Cerca", href: "#produtos" }
+    ] },
+    { label: "Solucoes", href: "#solucoes", children: [
+      { label: "Casa e Apartamento", href: "#solucoes" },
+      { label: "Loja e Comercio", href: "#solucoes" },
+      { label: "Area Externa / Rural", href: "#solucoes" }
+    ] },
+    { label: "Modulos Pro", href: "#simulador-cftv", children: [
+      { label: "Simulador de CFTV", href: "#simulador-cftv" },
+      { label: "Assistente de Projetos", href: "#assistente-projeto" },
+      { label: "Como Comprar", href: "#como-comprar" }
+    ] },
+    { label: "Atendimento", href: "#contato", children: [] },
+    { label: "Painel", href: "admin/index.html", children: [] }
+  ],
   services: [
     { title: "Instalação de Câmeras", desc: "CFTV profissional para casas, lojas, empresas e condomínios." },
     { title: "Alarmes e Sensores", desc: "Sistemas com sensores, sirenes e monitoramento remoto." },
@@ -80,6 +100,7 @@ function mergeAppData(data) {
     ...JSON.parse(JSON.stringify(defaultApp)),
     ...(data || {}),
     settings: { ...defaultApp.settings, ...((data && data.settings) || {}) },
+    navigationMenus: Array.isArray(data && data.navigationMenus) ? data.navigationMenus : defaultApp.navigationMenus,
     services: Array.isArray(data && data.services) ? data.services : defaultApp.services,
     products: [...savedProducts, ...missingDefaultProducts],
     portfolio: Array.isArray(data && data.portfolio) ? data.portfolio : defaultApp.portfolio,

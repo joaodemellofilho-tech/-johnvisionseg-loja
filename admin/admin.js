@@ -99,6 +99,7 @@ function renderAll() {
   renderDashboard();
   renderAgent();
   renderSettings();
+  renderNavigationMenus();
   renderProducts();
   renderServices();
   renderOrders();
@@ -344,6 +345,79 @@ async function saveSettings() {
   if (!savedCloud) {
     alert("Salvei neste navegador, mas o Firestore recusou a gravação. Verifique login admin/regras antes de recarregar.");
   }
+}
+
+function renderNavigationMenus() {
+  const list = document.getElementById("menusList");
+  if (!list) return;
+  const menus = Array.isArray(app.navigationMenus) ? app.navigationMenus : [];
+  list.innerHTML = menus.length ? menus.map((menu, menuIndex) => `
+    <div class="admin-card menu-editor">
+      <div class="menu-editor-head">
+        <strong>Menu ${menuIndex + 1}</strong>
+        <button class="danger" onclick="removeNavigationMenu(${menuIndex})" type="button">Remover menu</button>
+      </div>
+      <div class="admin-inline menu-main-fields">
+        <input value="${escapeHtml(menu.label || "")}" data-menu-label="${menuIndex}" placeholder="Nome do menu">
+        <input value="${escapeHtml(menu.href || "#")}" data-menu-href="${menuIndex}" placeholder="Link: #produtos ou https://...">
+        <button onclick="addNavigationSubmenu(${menuIndex})" type="button">Adicionar submenu</button>
+      </div>
+      <div class="submenu-editor-list">
+        ${(Array.isArray(menu.children) ? menu.children : []).map((child, childIndex) => `
+          <div class="submenu-editor-row">
+            <input value="${escapeHtml(child.label || "")}" data-submenu-label="${menuIndex}-${childIndex}" placeholder="Nome do submenu">
+            <input value="${escapeHtml(child.href || "#")}" data-submenu-href="${menuIndex}-${childIndex}" placeholder="Link do submenu">
+            <button class="danger" onclick="removeNavigationSubmenu(${menuIndex}, ${childIndex})" type="button">Remover</button>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `).join("") : '<div class="admin-card"><p>Nenhum menu cadastrado. Clique em Adicionar menu.</p></div>';
+}
+
+function collectNavigationMenus() {
+  return (Array.isArray(app.navigationMenus) ? app.navigationMenus : []).map((menu, menuIndex) => ({
+    label: document.querySelector(`[data-menu-label="${menuIndex}"]`)?.value.trim() || menu.label || "Menu",
+    href: document.querySelector(`[data-menu-href="${menuIndex}"]`)?.value.trim() || menu.href || "#",
+    children: (Array.isArray(menu.children) ? menu.children : []).map((child, childIndex) => ({
+      label: document.querySelector(`[data-submenu-label="${menuIndex}-${childIndex}"]`)?.value.trim() || child.label || "Submenu",
+      href: document.querySelector(`[data-submenu-href="${menuIndex}-${childIndex}"]`)?.value.trim() || child.href || "#"
+    }))
+  }));
+}
+
+function addNavigationMenu() {
+  app.navigationMenus = collectNavigationMenus();
+  app.navigationMenus.push({ label: "Novo menu", href: "#produtos", children: [] });
+  renderNavigationMenus();
+}
+
+function removeNavigationMenu(menuIndex) {
+  app.navigationMenus = collectNavigationMenus();
+  app.navigationMenus.splice(menuIndex, 1);
+  renderNavigationMenus();
+}
+
+function addNavigationSubmenu(menuIndex) {
+  app.navigationMenus = collectNavigationMenus();
+  app.navigationMenus[menuIndex].children.push({ label: "Novo submenu", href: "#produtos" });
+  renderNavigationMenus();
+}
+
+function removeNavigationSubmenu(menuIndex, childIndex) {
+  app.navigationMenus = collectNavigationMenus();
+  app.navigationMenus[menuIndex].children.splice(childIndex, 1);
+  renderNavigationMenus();
+}
+
+async function saveNavigationMenus() {
+  app.navigationMenus = collectNavigationMenus()
+    .filter((menu) => menu.label)
+    .map((menu) => ({ ...menu, children: menu.children.filter((child) => child.label) }));
+  const savedCloud = await saveApp(app);
+  renderNavigationMenus();
+  notice();
+  if (!savedCloud) alert("Menus salvos neste navegador, mas o Firestore recusou a gravacao.");
 }
 
 function toggleMaintenanceMode() {

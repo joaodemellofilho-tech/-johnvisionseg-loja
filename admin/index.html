@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Painel JohnVisionSeg</title>
 <link rel="icon" href="../assets/icons/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/style.css?v=30">
 </head>
 <body class="admin-body">
 <div id="login" class="login">
@@ -24,6 +24,7 @@
     <button onclick="showPanel('dashboard')" type="button">Dashboard</button>
     <button onclick="showPanel('agent')" type="button">Agente IA</button>
     <button onclick="showPanel('site')" type="button">Site</button>
+    <button onclick="showPanel('menus')" type="button">Menus</button>
     <button onclick="showPanel('products')" type="button">Produtos</button>
     <button onclick="showPanel('services')" type="button">Serviços</button>
     <button onclick="showPanel('orders')" type="button">Pedidos</button>
@@ -102,6 +103,16 @@
       <textarea id="maintenanceMessage" placeholder="Mensagem exibida quando a loja estiver em manutencao"></textarea>
       <button onclick="saveSettings()" type="button">Salvar site</button>
       <button onclick="toggleMaintenanceMode()" type="button" class="danger">Ligar/desligar manutencao</button>
+    </section>
+    <section id="panel-menus" class="panel">
+      <h1>Menus e Submenus</h1>
+      <div class="admin-card menu-builder-intro">
+        <h2>Navegacao da loja</h2>
+        <p>Crie os itens da barra superior. Use links internos como <strong>#produtos</strong> ou links completos como <strong>https://...</strong>.</p>
+      </div>
+      <div id="menusList"></div>
+      <button onclick="addNavigationMenu()" type="button">Adicionar menu</button>
+      <button onclick="saveNavigationMenus()" type="button">Salvar menus</button>
     </section>
     <section id="panel-products" class="panel">
       <h1>Produtos</h1>
@@ -250,9 +261,9 @@
     <section id="panel-testimonials" class="panel"><h1>Depoimentos</h1><div id="testimonialsList"></div><button onclick="addTestimonial()" type="button">Adicionar depoimento</button><button onclick="saveTestimonials()" type="button">Salvar depoimentos</button></section>
   </main>
 </div>
-<script src="../assets/js/firebase-config.js?v=23"></script>
-<script src="../assets/js/app-data.js?v=23"></script>
+<script src="../assets/js/firebase-config.js?v=30"></script>
+<script src="../assets/js/app-data.js?v=30"></script>
 <script src="ai_mock.js"></script>
-<script src="admin.js?v=23"></script>
+<script src="admin.js?v=30"></script>
 </body>
 </html>

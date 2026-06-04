@@ -46,6 +46,37 @@ function applySettings() {
   renderPaymentOptions();
 }
 
+function renderNavigation() {
+  const desktop = document.getElementById("desktopNavigation");
+  const simple = document.getElementById("simpleNavigation");
+  const menus = Array.isArray(app?.navigationMenus) ? app.navigationMenus.filter((menu) => menu && menu.label) : [];
+  if (!menus.length) return;
+  if (desktop) {
+    desktop.innerHTML = menus.map((menu) => {
+      const href = sanitizeMenuHref(menu.href);
+      const children = Array.isArray(menu.children) ? menu.children.filter((child) => child && child.label) : [];
+      if (!children.length) return `<a href="${escapeHtml(href)}">${escapeHtml(menu.label)}</a>`;
+      return `
+        <div class="nav-dropdown">
+          <a href="${escapeHtml(href)}" class="dropdown-trigger">${escapeHtml(menu.label)} <span class="arrow" aria-hidden="true">▼</span></a>
+          <div class="dropdown-menu">
+            ${children.map((child) => `<a href="${escapeHtml(sanitizeMenuHref(child.href))}">${escapeHtml(child.label)}</a>`).join("")}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+  if (simple) {
+    simple.innerHTML = menus.map((menu) => `<a href="${escapeHtml(sanitizeMenuHref(menu.href))}">${escapeHtml(menu.label)}</a>`).join("");
+  }
+}
+
+function sanitizeMenuHref(value) {
+  const href = String(value || "#").trim();
+  if (/^(#|\/|\.\/|\.\.\/|https?:\/\/|mailto:|tel:)/i.test(href)) return href;
+  return "#";
+}
+
 function renderMaintenanceMode() {
   const screen = document.getElementById("maintenanceScreen");
   const content = document.getElementById("storeContent");
@@ -1226,6 +1257,7 @@ function ensureCheckoutButton() {
 
 function renderAll() {
   applySettings();
+  renderNavigation();
   renderServices();
   renderPortfolio();
   renderTestimonials();
@@ -1242,6 +1274,7 @@ function reloadStorefrontFromLocal() {
     if (!saved) return;
     app = normalizeTextEncoding(mergeAppData(JSON.parse(saved)));
     renderMaintenanceMode();
+    renderNavigation();
     renderCategories();
     renderPromoCarousel();
     renderProducts();
